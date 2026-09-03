@@ -1,0 +1,702 @@
+
+/* =========================================================
+   BOOKING DETAILS PAGE
+========================================================= */
+
+.booking-details-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 0 70px;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.back-button {
+  margin-bottom: 30px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  transition: color 0.2s ease;
+}
+
+.back-button:hover {
+  color: var(--accent);
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.booking-details-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 30px;
+  margin-bottom: 40px;
+  padding-bottom: 30px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.booking-heading-content {
+  min-width: 0;
+}
+
+.page-eyebrow,
+.card-eyebrow {
+  margin: 0 0 7px;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+
+  color: var(--accent);
+}
+
+.booking-details-header h1 {
+  margin: 0;
+
+  font-family: "Noto Serif", serif;
+  font-size: 38px;
+  font-weight: 500;
+  letter-spacing: -0.7px;
+
+  color: var(--text-h);
+}
+
+.booking-time-large {
+  margin: 7px 0 0;
+
+  font-family: "Cormorant Garamond", serif;
+  font-size: 22px;
+
+  color: var(--text);
+}
+
+.booking-header-status {
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.booking-status {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 9px 15px;
+
+  border-radius: 20px;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.booking-status-confirmed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.booking-status-pending {
+  background: rgba(234, 179, 8, 0.14);
+  color: #a16207;
+}
+
+.booking-status-completed {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.booking-status-cancelled,
+.booking-status-declined {
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+}
+
+
+/* =========================================================
+   DETAIL GRID
+========================================================= */
+
+.booking-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.details-card {
+  min-height: 170px;
+  padding: 25px;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--bg);
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.details-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow);
+}
+
+.details-card h2 {
+  margin: 0 0 8px;
+
+  font-family: "Noto Serif", serif;
+  font-size: 23px;
+  font-weight: 500;
+
+  color: var(--text-h);
+}
+
+
+/* =========================================================
+   CLIENT
+========================================================= */
+
+.client-profile {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+  margin: 12px 0 20px;
+}
+
+.client-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: var(--accent-bg);
+  color: var(--accent);
+
+  font-family: "Noto Serif", serif;
+  font-size: 18px;
+}
+
+.client-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.client-information {
+  min-width: 0;
+}
+
+.client-profile h2 {
+  margin-bottom: 4px;
+}
+
+.client-profile a {
+  display: block;
+
+  font-family: "Cormorant Garamond", serif;
+  font-size: 16px;
+
+  color: var(--text);
+  text-decoration: none;
+}
+
+.client-profile a:hover {
+  color: var(--accent);
+}
+
+
+/* =========================================================
+   TEXT BUTTON
+========================================================= */
+
+.text-button {
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  color: var(--accent);
+}
+
+.text-button:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   SERVICE
+========================================================= */
+
+.service-description {
+  margin: 0 0 20px;
+
+  font-family: "Cormorant Garamond", serif;
+  font-size: 18px;
+  line-height: 1.4;
+
+  color: var(--text);
+}
+
+.service-details {
+  display: flex;
+  gap: 35px;
+
+  padding-top: 15px;
+
+  border-top: 1px solid var(--border);
+}
+
+.service-details div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.service-details span,
+.financial-row span,
+.meta-item span {
+  font-family: "Open Sans", sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  color: var(--text);
+}
+
+.service-details strong {
+  font-family: "Noto Serif", serif;
+  font-size: 17px;
+  font-weight: 500;
+
+  color: var(--text-h);
+}
+
+
+/* =========================================================
+   LOCATION
+========================================================= */
+
+.location-content {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.location-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: var(--accent-bg);
+  color: var(--accent);
+
+  font-size: 14px;
+}
+
+.location-content h2 {
+  margin-top: 3px;
+}
+
+
+/* =========================================================
+   FINANCIAL SUMMARY
+========================================================= */
+
+.financial-summary {
+  margin-top: 18px;
+}
+
+.financial-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 11px 0;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.financial-row:last-child {
+  border-bottom: none;
+}
+
+.financial-row strong {
+  font-family: "Noto Serif", serif;
+  font-size: 16px;
+  font-weight: 500;
+
+  color: var(--text-h);
+}
+
+.financial-row.total-row {
+  padding-top: 16px;
+}
+
+.financial-row.total-row strong {
+  font-size: 20px;
+  color: var(--accent);
+}
+
+
+/* =========================================================
+   NOTES
+========================================================= */
+
+.notes-card {
+  grid-column: 1 / -1;
+  min-height: auto;
+}
+
+.booking-notes {
+  margin: 0;
+
+  font-family: "Cormorant Garamond", serif;
+  font-size: 19px;
+  line-height: 1.5;
+
+  color: var(--text);
+}
+
+
+/* =========================================================
+   BOOKING META
+========================================================= */
+
+.booking-meta-card {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 0;
+
+  margin-bottom: 22px;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--social-bg);
+
+  overflow: hidden;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+
+  padding: 20px;
+
+  border-right: 1px solid var(--border);
+}
+
+.meta-item:last-child {
+  border-right: none;
+}
+
+.meta-item strong {
+  font-family: "Noto Serif", serif;
+  font-size: 15px;
+  font-weight: 500;
+
+  color: var(--text-h);
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.booking-actions-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 30px;
+
+  padding: 25px;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--social-bg);
+}
+
+.actions-heading {
+  min-width: 180px;
+}
+
+.booking-actions-card h2 {
+  margin: 0;
+
+  font-family: "Noto Serif", serif;
+  font-size: 22px;
+  font-weight: 500;
+
+  color: var(--text-h);
+}
+
+.booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+
+  gap: 9px;
+}
+
+.action-button {
+  padding: 11px 15px;
+
+  border-radius: 7px;
+
+  cursor: pointer;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.confirm-button,
+.complete-button {
+  border: 1px solid transparent;
+
+  background: var(--accent);
+  color: white;
+}
+
+.decline-button {
+  border: 1px solid rgba(239, 68, 68, 0.25);
+
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+}
+
+.secondary-action {
+  border: 1px solid var(--border);
+
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.updating-message,
+.inactive-message {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 17px;
+
+  color: var(--text);
+}
+
+
+/* =========================================================
+   ERROR / LOADING
+========================================================= */
+
+.booking-details-state {
+  padding: 80px 30px;
+
+  text-align: center;
+
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+}
+
+.booking-details-state p {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 19px;
+}
+
+.error-state h2 {
+  margin-bottom: 10px;
+
+  font-family: "Noto Serif", serif;
+  font-weight: 500;
+
+  color: var(--text-h);
+}
+
+.inline-error {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+
+  border-radius: 8px;
+
+  background: rgba(239, 68, 68, 0.08);
+
+  color: #b91c1c;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 11px;
+}
+
+.secondary-button {
+  margin-top: 20px;
+  padding: 11px 16px;
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  background: var(--bg);
+  color: var(--text-h);
+
+  cursor: pointer;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.secondary-button:hover {
+  border-color: var(--accent);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .booking-details-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .booking-header-status {
+    margin-top: -10px;
+  }
+
+  .booking-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .notes-card {
+    grid-column: auto;
+  }
+
+  .booking-meta-card {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .meta-item:nth-child(2) {
+    border-right: none;
+  }
+
+  .meta-item:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .booking-actions-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .booking-actions {
+    justify-content: flex-start;
+  }
+}
+
+
+@media (max-width: 600px) {
+
+  .booking-details-page {
+    padding-bottom: 40px;
+  }
+
+  .booking-details-header h1 {
+    font-size: 31px;
+  }
+
+  .details-card,
+  .booking-actions-card {
+    padding: 20px;
+  }
+
+  .booking-meta-card {
+    grid-template-columns: 1fr;
+  }
+
+  .meta-item {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .meta-item:last-child {
+    border-bottom: none;
+  }
+
+  .booking-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .action-button {
+    width: 100%;
+  }
+}

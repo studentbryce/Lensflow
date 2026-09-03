@@ -1,0 +1,434 @@
+/* ============================================================
+   LENSFLOW APPLICATION SHELL
+   ============================================================ */
+
+.app-layout {
+  display: flex;
+
+  min-height: 100vh;
+  width: 100%;
+
+  background: var(--color-background);
+}
+
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+
+.sidebar {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+
+  width: var(--sidebar-width);
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 32px 20px;
+
+  background: var(--color-sidebar);
+
+  color: var(--color-sidebar-text);
+
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+
+  z-index: 100;
+
+  overflow-y: auto;
+}
+
+
+/* ============================================================
+   SIDEBAR BRAND
+   ============================================================ */
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+
+  padding: 4px 12px 34px;
+
+  margin-bottom: 12px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  color: #f2eee8;
+
+  font-family: var(--font-heading);
+
+  font-size: 25px;
+
+  font-weight: 500;
+
+  letter-spacing: -0.3px;
+}
+
+
+.sidebar-logo::after {
+  content: '';
+
+  display: block;
+
+  width: 5px;
+  height: 5px;
+
+  margin-left: 7px;
+
+  margin-top: 17px;
+
+  border-radius: 50%;
+
+  background: var(--color-accent);
+}
+
+
+/* ============================================================
+   SIDEBAR NAVIGATION
+   ============================================================ */
+
+.sidebar nav {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.sidebar nav a {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  min-height: 46px;
+
+  padding: 0 14px;
+
+  color: var(--color-sidebar-muted);
+
+  text-decoration: none;
+
+  border-radius: var(--border-radius-small);
+
+  font-family: var(--font-navigation);
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  letter-spacing: 1.6px;
+
+  text-transform: uppercase;
+
+  transition:
+    color var(--transition-standard),
+    background-color var(--transition-standard),
+    padding-left var(--transition-standard);
+}
+
+
+.sidebar nav a:hover {
+  color: #f4f0e9;
+
+  background: var(--color-sidebar-soft);
+
+  padding-left: 18px;
+}
+
+
+.sidebar nav a.active {
+  color: #ffffff;
+
+  background: rgba(155, 128, 101, 0.18);
+}
+
+
+.sidebar nav a.active::before {
+  content: '';
+
+  position: absolute;
+
+  left: 0;
+
+  top: 10px;
+
+  bottom: 10px;
+
+  width: 2px;
+
+  border-radius: 2px;
+
+  background: var(--color-accent);
+}
+
+.logout-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+
+.photographer-content,
+.client-content {
+  flex: 1;
+
+  min-width: 0;
+
+  margin-left: var(--sidebar-width);
+
+  padding: 42px 48px;
+}
+
+
+/* ============================================================
+   CONTENT CONTAINER
+   ============================================================ */
+
+.main-content {
+  width: 100%;
+
+  max-width: var(--content-max-width);
+
+  margin: 20px auto;
+}
+
+
+/* ============================================================
+   DASHBOARD HEADER
+   ============================================================ */
+
+.dashboard-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-end;
+
+  gap: 30px;
+
+  margin-bottom: 40px;
+}
+
+
+.dashboard-header h1 {
+  margin: 0 0 8px;
+}
+
+
+.dashboard-header p {
+  color: var(--color-muted);
+
+  font-family: var(--font-body);
+
+  font-size: 20px;
+}
+
+
+.business-name {
+  color: var(--color-accent-dark);
+
+  font-weight: 600;
+}
+
+
+/* ============================================================
+   DASHBOARD STATS
+   ============================================================ */
+
+.dashboard-stats {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 18px;
+
+  margin-bottom: 44px;
+}
+
+
+.stat-card {
+  padding: 25px;
+
+  background: var(--color-surface);
+
+  border: 1px solid var(--color-border-light);
+
+  border-radius: var(--border-radius-medium);
+
+  box-shadow: var(--shadow-small);
+
+  transition:
+    transform var(--transition-standard),
+    box-shadow var(--transition-standard);
+}
+
+
+.stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: var(--shadow-medium);
+}
+
+
+.stat-card h2 {
+  margin: 7px 0;
+
+  font-family: var(--font-heading);
+
+  font-size: 30px;
+}
+
+
+.stat-card p {
+  color: var(--color-muted);
+
+  font-family: var(--font-navigation);
+
+  font-size: 11px;
+
+  letter-spacing: 0.8px;
+}
+
+
+/* ============================================================
+   DASHBOARD SECTIONS
+   ============================================================ */
+
+.dashboard-section {
+  margin-top: 32px;
+
+  padding: 30px;
+
+  background: var(--color-surface);
+
+  border: 1px solid var(--color-border-light);
+
+  border-radius: var(--border-radius-medium);
+
+  box-shadow: var(--shadow-small);
+}
+
+
+.dashboard-section h2 {
+  margin-bottom: 20px;
+
+  font-size: 25px;
+}
+
+
+/* ============================================================
+   EMPTY STATES
+   ============================================================ */
+
+.empty-state {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 150px;
+
+  padding: 30px;
+
+  border: 1px dashed var(--color-border);
+
+  border-radius: var(--border-radius-small);
+
+  background: var(--color-surface-soft);
+
+  text-align: center;
+}
+
+
+.empty-state p {
+  color: var(--color-muted);
+
+  font-family: var(--font-body);
+
+  font-size: 19px;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1100px) {
+
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+@media (max-width: 800px) {
+
+  :root {
+    --sidebar-width: 210px;
+  }
+
+  .photographer-content,
+  .client-content {
+    padding: 32px 25px;
+  }
+
+}
+
+
+@media (max-width: 650px) {
+
+  .sidebar {
+    position: relative;
+
+    width: 100%;
+    height: auto;
+
+    min-height: auto;
+
+    padding: 20px;
+  }
+
+  .sidebar-logo {
+    padding-bottom: 20px;
+  }
+
+  .sidebar nav {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .photographer-content,
+  .client-content {
+    margin-left: 0;
+
+    padding: 25px 18px;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+}

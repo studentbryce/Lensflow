@@ -1,0 +1,322 @@
+/* =========================================================
+   Login Page
+========================================================= */
+
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  min-height: 100vh;
+
+  padding: 35px 20px;
+
+  box-sizing: border-box;
+
+  background: var(--bg);
+}
+
+/* =========================================================
+   Brand
+========================================================= */
+
+.login-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 65px;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  color: var(--text-h);
+
+  cursor: pointer;
+
+  font-family: "Noto Serif", serif;
+  font-size: 21px;
+}
+
+.login-brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+
+  color: var(--accent);
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   Card
+========================================================= */
+
+.login-card {
+  width: min(100%, 430px);
+
+  box-sizing: border-box;
+
+  padding: 40px;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--bg);
+
+  box-shadow: var(--shadow);
+}
+
+/* =========================================================
+   Heading
+========================================================= */
+
+.login-heading {
+  margin-bottom: 30px;
+}
+
+.login-eyebrow {
+  margin: 0 0 8px;
+
+  color: var(--accent);
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.login-heading h1 {
+  margin: 0;
+
+  color: var(--text-h);
+
+  font-family: "Noto Serif", serif;
+  font-size: 30px;
+  font-weight: 500;
+
+  letter-spacing: -0.4px;
+}
+
+.login-heading p:last-child {
+  margin: 9px 0 0;
+
+  color: var(--text);
+
+  font-family: "Cormorant Garamond", serif;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   Form
+========================================================= */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.login-field label {
+  color: var(--text-h);
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.login-field input {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 12px 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  outline: none;
+
+  background: var(--bg);
+  color: var(--text-h);
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 12px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.login-field input::placeholder {
+  color: var(--text);
+}
+
+.login-field input:focus {
+  border-color: var(--accent-border);
+
+  box-shadow:
+    0 0 0 3px var(--accent-bg);
+}
+
+/* =========================================================
+   Error
+========================================================= */
+
+.login-error {
+  padding: 11px 13px;
+
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 7px;
+
+  background: rgba(239, 68, 68, 0.05);
+
+  color: #b91c1c;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   Submit
+========================================================= */
+
+.login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  width: 100%;
+
+  margin-top: 3px;
+
+  padding: 13px;
+
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+
+  background: var(--accent);
+  color: white;
+
+  cursor: pointer;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.login-submit span {
+  font-size: 13px;
+
+  transition: transform 0.2s ease;
+}
+
+.login-submit:hover:not(:disabled) {
+  opacity: 0.9;
+
+  transform: translateY(-1px);
+}
+
+.login-submit:hover:not(:disabled) span {
+  transform: translateX(3px);
+}
+
+.login-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   Back
+========================================================= */
+
+.login-back {
+  display: block;
+
+  margin: 25px auto 0;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  color: var(--text);
+
+  cursor: pointer;
+
+  font-family: "Open Sans", sans-serif;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.login-back:hover {
+  color: var(--accent);
+}
+
+/* =========================================================
+   Footer
+========================================================= */
+
+.login-footer {
+  margin: 25px 0 0;
+
+  color: var(--text);
+
+  font-family: "Cormorant Garamond", serif;
+  font-size: 14px;
+}
+
+/* =========================================================
+   Mobile
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .login-page {
+    padding: 25px 15px;
+  }
+
+  .login-brand {
+    margin-bottom: 45px;
+  }
+
+  .login-card {
+    padding: 30px 22px;
+  }
+
+  .login-heading h1 {
+    font-size: 27px;
+  }
+
+}

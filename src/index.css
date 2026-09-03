@@ -1,0 +1,438 @@
+/* ============================================================
+   LENSFLOW
+   Global Design System
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Ephesis&family=Noto+Serif:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap');
+
+
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+
+:root {
+
+  /* ---------- Typography ---------- */
+
+  --font-heading:
+    'Noto Serif',
+    Georgia,
+    serif;
+
+  --font-subheading:
+    'Ephesis',
+    cursive;
+
+  --font-navigation:
+    'Open Sans',
+    Arial,
+    sans-serif;
+
+  --font-body:
+    'Cormorant Garamond',
+    Georgia,
+    serif;
+
+
+  /* ---------- Colours ---------- */
+
+  --color-background: #f8f6f2;
+
+  --color-surface: #ffffff;
+
+  --color-surface-soft: #f3f0eb;
+
+  --color-sidebar: #25231f;
+
+  --color-sidebar-soft: #302e29;
+
+  --color-sidebar-text: #e8e3da;
+
+  --color-sidebar-muted: #aaa399;
+
+  --color-text: #514c45;
+
+  --color-heading: #24211d;
+
+  --color-muted: #8b857c;
+
+  --color-border: #ded9d1;
+
+  --color-border-light: #ebe7e0;
+
+
+  /* ---------- Accent ---------- */
+
+  --color-accent: #9b8065;
+
+  --color-accent-dark: #7c644e;
+
+  --color-accent-light: #eee7df;
+
+  --color-accent-soft: rgba(155, 128, 101, 0.12);
+
+
+  /* ---------- Status ---------- */
+
+  --color-success: #657d69;
+
+  --color-warning: #a27d4d;
+
+  --color-danger: #9a625d;
+
+  --color-info: #65758a;
+
+
+  /* ---------- Shadows ---------- */
+
+  --shadow-small:
+    0 2px 8px rgba(36, 33, 29, 0.05);
+
+  --shadow-medium:
+    0 8px 24px rgba(36, 33, 29, 0.08);
+
+  --shadow-large:
+    0 16px 40px rgba(36, 33, 29, 0.10);
+
+
+  /* ---------- Layout ---------- */
+
+  --sidebar-width: 250px;
+
+  --content-max-width: 1400px;
+
+  --border-radius-small: 6px;
+
+  --border-radius-medium: 10px;
+
+  --border-radius-large: 16px;
+
+
+  /* ---------- Transitions ---------- */
+
+  --transition-fast: 0.15s ease;
+
+  --transition-standard: 0.25s ease;
+
+  --transition-slow: 0.35s ease;
+
+
+  /* ---------- Legacy compatibility ---------- */
+
+  --text: var(--color-text);
+
+  --text-h: var(--color-heading);
+
+  --bg: var(--color-background);
+
+  --border: var(--color-border);
+
+  --accent: var(--color-accent);
+
+  --accent-bg: var(--color-accent-soft);
+
+  --accent-border: var(--color-accent);
+
+  --sans: var(--font-navigation);
+
+  --heading: var(--font-heading);
+}
+
+
+/* ============================================================
+   GLOBAL RESET
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+
+html {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+
+body {
+  margin: 0;
+  padding: 0;
+
+  min-width: 320px;
+  min-height: 100vh;
+
+  background: var(--color-background);
+  color: var(--color-text);
+
+  font-family: var(--font-body);
+  font-size: 19px;
+  line-height: 1.55;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-family: var(--font-heading);
+  font-weight: 500;
+
+  line-height: 1.2;
+}
+
+
+h1 {
+  font-size: 42px;
+  letter-spacing: -0.5px;
+}
+
+
+h2 {
+  font-size: 30px;
+  letter-spacing: -0.2px;
+}
+
+
+h3 {
+  font-size: 24px;
+}
+
+
+h4 {
+  font-size: 20px;
+}
+
+
+p {
+  margin: 0;
+}
+
+
+a {
+  color: inherit;
+}
+
+
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-navigation);
+}
+
+
+/* ============================================================
+   DECORATIVE SUBHEADINGS
+   ============================================================ */
+
+.eyebrow,
+.script-heading,
+.decorative-heading {
+  font-family: var(--font-subheading);
+  font-weight: 400;
+
+  color: var(--color-accent);
+
+  line-height: 1;
+}
+
+
+.eyebrow {
+  font-size: 32px;
+}
+
+
+/* ============================================================
+   NAVIGATION TYPOGRAPHY
+   ============================================================ */
+
+nav,
+.navigation-link,
+.sidebar nav a,
+button {
+  font-family: var(--font-navigation);
+}
+
+
+.navigation-link,
+.sidebar nav a {
+  font-size: 13px;
+
+  letter-spacing: 1.5px;
+
+  text-transform: uppercase;
+}
+
+
+/* ============================================================
+   BODY CONTENT
+   ============================================================ */
+
+.body-text {
+  font-family: var(--font-body);
+
+  font-size: 20px;
+
+  line-height: 1.6;
+
+  color: var(--color-text);
+}
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+button {
+  cursor: pointer;
+
+  border: none;
+
+  transition:
+    background-color var(--transition-standard),
+    color var(--transition-standard),
+    border-color var(--transition-standard),
+    transform var(--transition-fast);
+}
+
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-accent);
+
+  outline-offset: 3px;
+}
+
+
+/* ============================================================
+   FORMS
+   ============================================================ */
+
+input,
+textarea,
+select {
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--border-radius-small);
+
+  background: var(--color-surface);
+
+  color: var(--color-text);
+
+  font-size: 15px;
+
+  padding: 11px 13px;
+
+  transition:
+    border-color var(--transition-standard),
+    box-shadow var(--transition-standard);
+}
+
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-accent);
+
+  box-shadow:
+    0 0 0 3px var(--color-accent-soft);
+
+  outline: none;
+}
+
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+
+::-webkit-scrollbar-thumb {
+  background: #c5beb4;
+
+  border-radius: 10px;
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+
+/* ============================================================
+   SELECTION
+   ============================================================ */
+
+::selection {
+  background: var(--color-accent-light);
+
+  color: var(--color-heading);
+}
+
+
+/* ============================================================
+   RESPONSIVE TYPOGRAPHY
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+  h1 {
+    font-size: 36px;
+  }
+
+  h2 {
+    font-size: 27px;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  body {
+    font-size: 17px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  h2 {
+    font-size: 25px;
+  }
+
+}
