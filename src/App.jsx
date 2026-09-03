@@ -15,15 +15,20 @@ import AppLayout from "./layouts/AppLayout";
 import PhotographerDashboard from "./pages/photographer/Dashboard";
 import PhotographerBookings from "./pages/photographer/Bookings";
 import BookingDetails from "./pages/photographer/BookingDetails";
+import NewBooking from "./pages/photographer/NewBooking";
 import PhotographerCalendar from "./pages/photographer/Calendar";
 import PhotographerClients from "./pages/photographer/Clients";
+import PhotographerEditClient from "./pages/photographer/EditClient";
 import PhotographerClientProfile from "./pages/photographer/PhotographerClientProfile";
 import PhotographerServices from "./pages/photographer/Services";
+import PhotographerNewService from "./pages/photographer/NewService";
+import PhotographerEditService from "./pages/photographer/EditService";
 import PhotographerInvoices from "./pages/photographer/Invoices";
 import PhotographerGalleries from "./pages/photographer/Galleries";
 import PhotographerPortfolio from "./pages/photographer/Portfolio";
 import PhotographerWebsiteBuilder from "./pages/photographer/WebsiteBuilder";
 import PhotographerSettings from "./pages/photographer/Settings";
+
 
 import ClientDashboard from "./pages/client/Dashboard";
 import ClientBookings from "./pages/client/Bookings";
@@ -93,6 +98,11 @@ export default function App() {
                 element={<BookingDetails />} />
 
               <Route
+                path="/photographer/bookings/new"
+                element={<NewBooking />}
+              />
+
+              <Route
                 path="calendar"
                 element={<PhotographerCalendar />}
               />
@@ -103,13 +113,28 @@ export default function App() {
               />
 
               <Route
+                path="/photographer/clients/:client_id/edit"
+                element={<PhotographerEditClient />}
+              />
+
+              <Route
                 path="/photographer/clients/:client_id"
-                element={<ClientProfile />}
+                element={<PhotographerClientProfile />}
               />
 
               <Route
                 path="services"
                 element={<PhotographerServices />}
+              />
+
+              <Route
+                path="/photographer/services/new"
+                element={<PhotographerNewService />}
+              />
+
+              <Route
+                path="/photographer/services/:service_id/edit"
+                element={<PhotographerEditService />}
               />
 
               <Route

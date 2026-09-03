@@ -283,7 +283,7 @@ export default function Bookings() {
         <button
           type="button"
           className="primary-button"
-          onClick={() => console.log("Create booking")}
+          onClick={() => navigate("/photographer/bookings/new")}
         >
           + New Booking
         </button>
