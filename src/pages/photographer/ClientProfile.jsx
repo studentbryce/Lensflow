@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
-import "./PhotographerClientProfile.css";
+import "./ClientProfile.css";
 
 export default function PhotographerClientProfile() {
   const navigate = useNavigate();

@@ -4,7 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import "./BookingDetails.css";
 
 export default function BookingDetails() {
-  const { bookingId } = useParams();
+  const { booking_id } = useParams();
   const navigate = useNavigate();
 
   const [booking, setBooking] = useState(null);
@@ -17,7 +17,7 @@ export default function BookingDetails() {
 
   useEffect(() => {
     fetchBooking();
-  }, [bookingId]);
+  }, [booking_id]);
 
   async function fetchBooking() {
     setLoading(true);
@@ -64,7 +64,7 @@ export default function BookingDetails() {
             duration_minutes
           )
         `)
-        .eq("booking_id", bookingId)
+        .eq("booking_id", booking_id)
         .single();
 
       if (bookingError) throw bookingError;

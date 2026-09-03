@@ -19,11 +19,14 @@ import NewBooking from "./pages/photographer/NewBooking";
 import PhotographerCalendar from "./pages/photographer/Calendar";
 import PhotographerClients from "./pages/photographer/Clients";
 import PhotographerEditClient from "./pages/photographer/EditClient";
-import PhotographerClientProfile from "./pages/photographer/PhotographerClientProfile";
+import PhotographerClientProfile from "./pages/photographer/ClientProfile";
 import PhotographerServices from "./pages/photographer/Services";
 import PhotographerNewService from "./pages/photographer/NewService";
 import PhotographerEditService from "./pages/photographer/EditService";
 import PhotographerInvoices from "./pages/photographer/Invoices";
+import PhotographerNewInvoice from "./pages/photographer/NewInvoice";
+import PhotographerEditInvoice from "./pages/photographer/EditInvoice";
+import PhotographerInvoiceDetails from "./pages/photographer/InvoiceDetails";
 import PhotographerGalleries from "./pages/photographer/Galleries";
 import PhotographerPortfolio from "./pages/photographer/Portfolio";
 import PhotographerWebsiteBuilder from "./pages/photographer/WebsiteBuilder";
@@ -94,7 +97,7 @@ export default function App() {
               />
 
               <Route
-                path="/photographer/bookings/:bookingId"
+                path="/photographer/bookings/:booking_id"
                 element={<BookingDetails />} />
 
               <Route
@@ -140,6 +143,21 @@ export default function App() {
               <Route
                 path="invoices"
                 element={<PhotographerInvoices />}
+              />
+
+              <Route
+                path="/photographer/invoices/new"
+                element={<PhotographerNewInvoice />}
+              />
+
+              <Route
+                path="/photographer/invoices/:invoice_id"
+                element={<PhotographerInvoiceDetails />}
+              />
+
+              <Route
+                path="/photographer/invoices/:invoice_id/edit"
+                element={<PhotographerEditInvoice />}
               />
 
               <Route
