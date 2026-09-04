@@ -14,8 +14,8 @@ import AppLayout from "./layouts/AppLayout";
 
 import PhotographerDashboard from "./pages/photographer/Dashboard";
 import PhotographerBookings from "./pages/photographer/Bookings";
-import BookingDetails from "./pages/photographer/BookingDetails";
-import NewBooking from "./pages/photographer/NewBooking";
+import PhotographerBookingDetails from "./pages/photographer/BookingDetails";
+import PhotographerNewBooking from "./pages/photographer/NewBooking";
 import PhotographerCalendar from "./pages/photographer/Calendar";
 import PhotographerClients from "./pages/photographer/Clients";
 import PhotographerEditClient from "./pages/photographer/EditClient";
@@ -28,6 +28,9 @@ import PhotographerNewInvoice from "./pages/photographer/NewInvoice";
 import PhotographerEditInvoice from "./pages/photographer/EditInvoice";
 import PhotographerInvoiceDetails from "./pages/photographer/InvoiceDetails";
 import PhotographerGalleries from "./pages/photographer/Galleries";
+import PhotographerNewGallery from "./pages/photographer/NewGallery";
+import PhotographerEditGallery from "./pages/photographer/EditGallery";
+import PhotographerGalleryDetails from "./pages/photographer/GalleryDetails";
 import PhotographerPortfolio from "./pages/photographer/Portfolio";
 import PhotographerWebsiteBuilder from "./pages/photographer/WebsiteBuilder";
 import PhotographerSettings from "./pages/photographer/Settings";
@@ -98,11 +101,11 @@ export default function App() {
 
               <Route
                 path="/photographer/bookings/:booking_id"
-                element={<BookingDetails />} />
+                element={<PhotographerBookingDetails />} />
 
               <Route
                 path="/photographer/bookings/new"
-                element={<NewBooking />}
+                element={<PhotographerNewBooking />}
               />
 
               <Route
@@ -163,6 +166,21 @@ export default function App() {
               <Route
                 path="galleries"
                 element={<PhotographerGalleries />}
+              />
+
+              <Route
+                path="/photographer/galleries/new"
+                element={<PhotographerNewGallery />}
+              />
+
+              <Route
+                path="/photographer/galleries/:gallery_id"
+                element={<PhotographerGalleryDetails />}
+              />
+
+              <Route
+                path="/photographer/galleries/:gallery_id/edit"
+                element={<PhotographerEditGallery />}
               />
 
               <Route
