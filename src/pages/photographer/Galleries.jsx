@@ -88,6 +88,7 @@ export default function Galleries() {
         // -------------------------------------------------------
         // 1. Get photographer profile
         // -------------------------------------------------------
+
         const { data: photographer, error: photographerError } =
           await supabase
             .from("photographer_profiles")
@@ -108,6 +109,7 @@ export default function Galleries() {
         // -------------------------------------------------------
         // 2. Load photographer galleries
         // -------------------------------------------------------
+
         const { data: galleryData, error: galleryError } = await supabase
           .from("galleries")
           .select(`
@@ -134,6 +136,7 @@ export default function Galleries() {
         // -------------------------------------------------------
         // 3. Load photographer clients
         // -------------------------------------------------------
+
         const { data: clientData, error: clientError } = await supabase
           .from("clients")
           .select(`
@@ -151,6 +154,7 @@ export default function Galleries() {
         // -------------------------------------------------------
         // 4. Load related profiles
         // -------------------------------------------------------
+
         const clientUserIds = [
           ...new Set(
             loadedClients
@@ -162,16 +166,17 @@ export default function Galleries() {
         let loadedProfiles = [];
 
         if (clientUserIds.length > 0) {
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select(`
-              user_id,
-              first_name,
-              last_name,
-              email,
-              phone
-            `)
-            .in("user_id", clientUserIds);
+          const { data: profileData, error: profileError } =
+            await supabase
+              .from("profiles")
+              .select(`
+                user_id,
+                first_name,
+                last_name,
+                email,
+                phone
+              `)
+              .in("user_id", clientUserIds);
 
           if (profileError) {
             throw profileError;
@@ -183,6 +188,7 @@ export default function Galleries() {
         // -------------------------------------------------------
         // 5. Load bookings
         // -------------------------------------------------------
+
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
           .select(`
@@ -206,8 +212,15 @@ export default function Galleries() {
         const loadedBookings = bookingData || [];
 
         // -------------------------------------------------------
-        // 6. Load media for media counts
+        // 6. Load gallery media
+        //
+        // We load the media records for:
+        // - media counts
+        // - photo counts
+        // - video counts
+        // - gallery thumbnail selection
         // -------------------------------------------------------
+
         const galleryIds = loadedGalleries.map(
           (gallery) => gallery.gallery_id
         );
@@ -221,10 +234,13 @@ export default function Galleries() {
               media_id,
               gallery_id,
               media_type,
+              file_name,
+              storage_path,
               is_downloadable,
               uploaded_at
             `)
-            .in("gallery_id", galleryIds);
+            .in("gallery_id", galleryIds)
+            .order("uploaded_at", { ascending: true });
 
           if (mediaError) {
             throw mediaError;
@@ -232,6 +248,52 @@ export default function Galleries() {
 
           loadedMedia = mediaData || [];
         }
+
+        // -------------------------------------------------------
+        // 7. Generate signed thumbnail URLs
+        //
+        // client-media is PRIVATE, so we cannot use getPublicUrl().
+        //
+        // We use the first image uploaded to each gallery.
+        // Videos are intentionally ignored for the gallery thumbnail.
+        // -------------------------------------------------------
+
+        const thumbnailMap = new Map();
+
+        const galleryImageMedia = loadedMedia.filter(
+          (item) => item.media_type === "image" && item.storage_path
+        );
+
+        await Promise.all(
+          galleryImageMedia.map(async (mediaItem) => {
+            // Only use the first image for each gallery.
+            if (thumbnailMap.has(mediaItem.gallery_id)) {
+              return;
+            }
+
+            const { data: signedUrlData, error: signedUrlError } =
+              await supabase.storage
+                .from("client-media")
+                .createSignedUrl(mediaItem.storage_path, 60 * 60);
+
+            if (signedUrlError) {
+              console.warn(
+                `Unable to create thumbnail URL for gallery ${mediaItem.gallery_id}:`,
+                signedUrlError
+              );
+
+              return;
+            }
+
+            if (signedUrlData?.signedUrl) {
+              thumbnailMap.set(mediaItem.gallery_id, {
+                url: signedUrlData.signedUrl,
+                mediaId: mediaItem.media_id,
+                fileName: mediaItem.file_name,
+              });
+            }
+          })
+        );
 
         if (!isMounted) return;
 
@@ -241,6 +303,14 @@ export default function Galleries() {
         setProfiles(loadedProfiles);
         setBookings(loadedBookings);
         setMedia(loadedMedia);
+
+        // Store thumbnail information directly on the gallery records.
+        setGalleries(
+          loadedGalleries.map((gallery) => ({
+            ...gallery,
+            thumbnail: thumbnailMap.get(gallery.gallery_id) || null,
+          }))
+        );
       } catch (error) {
         console.error("Error loading galleries:", error);
 
@@ -294,6 +364,10 @@ export default function Galleries() {
 
     return map;
   }, [bookings]);
+
+  // -------------------------------------------------------------
+  // Media counts
+  // -------------------------------------------------------------
 
   const mediaCountMap = useMemo(() => {
     const map = new Map();
@@ -455,7 +529,9 @@ export default function Galleries() {
         <div className="galleries-header">
           <div>
             <p className="galleries-eyebrow">Client delivery</p>
+
             <h1>Galleries</h1>
+
             <p className="galleries-description">
               Manage your client galleries and delivered photography.
             </p>
@@ -464,7 +540,9 @@ export default function Galleries() {
 
         <div className="galleries-message error-message">
           <strong>Unable to load galleries</strong>
+
           <span>{errorMessage}</span>
+
           <button
             type="button"
             className="galleries-retry-button"
@@ -482,6 +560,7 @@ export default function Galleries() {
       {/* ========================================================
           HEADER
       ======================================================== */}
+
       <header className="galleries-header">
         <div>
           <p className="galleries-eyebrow">Client delivery</p>
@@ -507,6 +586,7 @@ export default function Galleries() {
       {/* ========================================================
           SUMMARY CARDS
       ======================================================== */}
+
       <section className="galleries-summary">
         <div className="gallery-summary-card">
           <div className="gallery-summary-icon">
@@ -590,6 +670,7 @@ export default function Galleries() {
       {/* ========================================================
           TOOLBAR
       ======================================================== */}
+
       <section className="galleries-toolbar">
         <div className="galleries-search">
           <svg
@@ -666,6 +747,7 @@ export default function Galleries() {
       {/* ========================================================
           RESULTS
       ======================================================== */}
+
       <section className="galleries-content">
         {filteredGalleries.length === 0 ? (
           <div className="galleries-empty">
@@ -710,6 +792,7 @@ export default function Galleries() {
             <div className="galleries-results-heading">
               <div>
                 <h2>Your Galleries</h2>
+
                 <span>
                   Showing {filteredGalleries.length}{" "}
                   {filteredGalleries.length === 1
@@ -732,32 +815,55 @@ export default function Galleries() {
                     {/* ------------------------------------------------
                         CARD PREVIEW
                     ------------------------------------------------ */}
-                    <div className="gallery-card-preview">
-                      <div className="gallery-preview-placeholder">
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        >
-                          <rect
-                            x="3"
-                            y="4"
-                            width="18"
-                            height="16"
-                            rx="2"
-                          />
-                          <circle cx="8.5" cy="9" r="1.5" />
-                          <path d="m21 15-4.5-4.5L8 19" />
-                        </svg>
 
-                        <span>
-                          {gallery.mediaCount > 0
-                            ? `${gallery.mediaCount} media`
-                            : "No media yet"}
+                    <div
+                      className={`gallery-card-preview ${
+                        gallery.thumbnail ? "has-thumbnail" : ""
+                      }`}
+                    >
+                      {gallery.thumbnail?.url ? (
+                        <img
+                          src={gallery.thumbnail.url}
+                          alt={`${gallery.name} gallery`}
+                          className="gallery-card-thumbnail"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="gallery-preview-placeholder">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                          >
+                            <rect
+                              x="3"
+                              y="4"
+                              width="18"
+                              height="16"
+                              rx="2"
+                            />
+                            <circle cx="8.5" cy="9" r="1.5" />
+                            <path d="m21 15-4.5-4.5L8 19" />
+                          </svg>
+
+                          <span>
+                            {gallery.mediaCount > 0
+                              ? `${gallery.mediaCount} media`
+                              : "No media yet"}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Media count overlay */}
+                      {gallery.mediaCount > 0 && (
+                        <span className="gallery-thumbnail-count">
+                          {gallery.mediaCount}{" "}
+                          {gallery.mediaCount === 1 ? "item" : "items"}
                         </span>
-                      </div>
+                      )}
 
+                      {/* Published status */}
                       <span
                         className={
                           gallery.is_published
@@ -773,6 +879,7 @@ export default function Galleries() {
                     {/* ------------------------------------------------
                         CARD CONTENT
                     ------------------------------------------------ */}
+
                     <div className="gallery-card-content">
                       <div className="gallery-card-heading">
                         <div>
@@ -785,6 +892,7 @@ export default function Galleries() {
                       </div>
 
                       {/* Client */}
+
                       <div className="gallery-client">
                         <div className="gallery-client-avatar">
                           {getInitials(clientName)}
@@ -797,6 +905,7 @@ export default function Galleries() {
                       </div>
 
                       {/* Gallery metadata */}
+
                       <div className="gallery-meta">
                         <div className="gallery-meta-item">
                           <svg
@@ -817,6 +926,7 @@ export default function Galleries() {
 
                           <div>
                             <span>Booking</span>
+
                             <strong>
                               {bookingDate
                                 ? formatDate(bookingDate)
@@ -845,6 +955,7 @@ export default function Galleries() {
 
                           <div>
                             <span>Media</span>
+
                             <strong>
                               {formatMediaCount(gallery.mediaCount)}
                             </strong>
@@ -853,10 +964,13 @@ export default function Galleries() {
                       </div>
 
                       {/* Media breakdown */}
+
                       <div className="gallery-media-breakdown">
                         <span>
                           <strong>{gallery.photoCount}</strong>{" "}
-                          {gallery.photoCount === 1 ? "photo" : "photos"}
+                          {gallery.photoCount === 1
+                            ? "photo"
+                            : "photos"}
                         </span>
 
                         <span className="gallery-breakdown-divider">
@@ -865,11 +979,14 @@ export default function Galleries() {
 
                         <span>
                           <strong>{gallery.videoCount}</strong>{" "}
-                          {gallery.videoCount === 1 ? "video" : "videos"}
+                          {gallery.videoCount === 1
+                            ? "video"
+                            : "videos"}
                         </span>
                       </div>
 
                       {/* Download access */}
+
                       <div className="gallery-download-status">
                         <svg
                           viewBox="0 0 24 24"
@@ -893,6 +1010,7 @@ export default function Galleries() {
                       </div>
 
                       {/* Actions */}
+
                       <div className="gallery-card-actions">
                         <button
                           type="button"

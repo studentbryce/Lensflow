@@ -32,6 +32,7 @@ import PhotographerNewGallery from "./pages/photographer/NewGallery";
 import PhotographerEditGallery from "./pages/photographer/EditGallery";
 import PhotographerGalleryDetails from "./pages/photographer/GalleryDetails";
 import PhotographerPortfolio from "./pages/photographer/Portfolio";
+import PhotographerNewPortfolioItem from "./pages/photographer/NewPortfolioItem";
 import PhotographerWebsiteBuilder from "./pages/photographer/WebsiteBuilder";
 import PhotographerSettings from "./pages/photographer/Settings";
 
@@ -186,6 +187,11 @@ export default function App() {
               <Route
                 path="portfolio"
                 element={<PhotographerPortfolio />}
+              />
+
+              <Route
+                path="portfolio/new"
+                element={<PhotographerNewPortfolioItem />}
               />
 
               <Route

@@ -2,7 +2,7 @@
   min-height: 100vh;
   background: var(--bg, #f6f7f9);
   color: var(--text, #334155);
-  padding: 32px 24px 60px;
+  padding: 8px 0 60px;
 }
 
 .edit-gallery-container {
