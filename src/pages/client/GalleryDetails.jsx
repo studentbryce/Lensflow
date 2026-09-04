@@ -1,0 +1,1491 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import JSZip from "jszip";
+import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../lib/supabaseClient";
+import "./GalleryDetails.css";
+
+const SIGNED_URL_DURATION = 60 * 60;
+
+const formatDate = (value) => {
+    if (!value) return "Not specified";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "Not specified";
+
+    return date.toLocaleDateString("en-NZ", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+};
+
+const formatTime = (value) => {
+    if (!value) return "";
+
+    const [hours, minutes] = value.split(":");
+
+    if (hours === undefined || minutes === undefined) return value;
+
+    const date = new Date();
+    date.setHours(Number(hours), Number(minutes), 0, 0);
+
+    return date.toLocaleTimeString("en-NZ", {
+        hour: "numeric",
+        minute: "2-digit",
+    });
+};
+
+const formatFileSize = (bytes) => {
+    if (!bytes || Number(bytes) <= 0) return "";
+
+    const size = Number(bytes);
+
+    if (size < 1024 * 1024) {
+        return `${Math.round(size / 1024)} KB`;
+    }
+
+    if (size < 1024 * 1024 * 1024) {
+        return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+};
+
+const isVideoMedia = (media) => {
+    return (
+        media.media_type === "video" ||
+        media.mime_type?.startsWith("video/")
+    );
+};
+
+const getMediaLabel = (media) => {
+    if (isVideoMedia(media)) return "Video";
+    return "Photo";
+};
+
+const getMediaIcon = (media) => {
+    if (isVideoMedia(media)) {
+        return (
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                aria-hidden="true"
+            >
+                <polygon points="8,5 19,12 8,19" />
+            </svg>
+        );
+    }
+
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            aria-hidden="true"
+        >
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <circle cx="8.5" cy="9" r="1.5" />
+            <path d="m3 17 5-5 4 4 3-3 6 6" />
+        </svg>
+    );
+};
+
+const sanitizeFileName = (value, fallback = "lensflow-gallery") => {
+    const cleaned = String(value || fallback)
+        .trim()
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
+        .replace(/\s+/g, " ")
+        .replace(/\.+$/g, "");
+
+    return cleaned || fallback;
+};
+
+const getUniqueFileName = (fileName, usedNames) => {
+    const safeName = sanitizeFileName(fileName, "lensflow-file");
+
+    if (!usedNames.has(safeName)) {
+        usedNames.add(safeName);
+        return safeName;
+    }
+
+    const lastDot = safeName.lastIndexOf(".");
+
+    const base =
+        lastDot > 0
+            ? safeName.slice(0, lastDot)
+            : safeName;
+
+    const extension =
+        lastDot > 0
+            ? safeName.slice(lastDot)
+            : "";
+
+    let counter = 2;
+    let uniqueName = `${base} (${counter})${extension}`;
+
+    while (usedNames.has(uniqueName)) {
+        counter += 1;
+        uniqueName = `${base} (${counter})${extension}`;
+    }
+
+    usedNames.add(uniqueName);
+
+    return uniqueName;
+};
+
+function GalleryDetails() {
+    const { gallery_id } = useParams();
+    const navigate = useNavigate();
+    const { user, loading: authLoading } = useAuth();
+
+    const [gallery, setGallery] = useState(null);
+    const [booking, setBooking] = useState(null);
+    const [media, setMedia] = useState([]);
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const [selectedMedia, setSelectedMedia] = useState(null);
+    const [downloadingId, setDownloadingId] = useState(null);
+
+    const [downloadingAll, setDownloadingAll] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState({
+        current: 0,
+        total: 0,
+    });
+
+    const loadGallery = useCallback(async () => {
+        if (!user?.id || !gallery_id) return;
+
+        setLoading(true);
+        setError("");
+
+        try {
+            /*
+             * First get the client record belonging to the
+             * currently authenticated user.
+             */
+            const { data: client, error: clientError } = await supabase
+                .from("clients")
+                .select("client_id")
+                .eq("user_id", user.id)
+                .maybeSingle();
+
+            if (clientError) {
+                throw clientError;
+            }
+
+            if (!client) {
+                throw new Error("Your client account could not be found.");
+            }
+
+            /*
+             * RLS provides the actual security boundary here.
+             * The client_id filter additionally ensures that the
+             * requested gallery belongs to this client.
+             */
+            const { data: galleryData, error: galleryError } =
+                await supabase
+                    .from("galleries")
+                    .select(`
+            gallery_id,
+            photographer_id,
+            client_id,
+            booking_id,
+            name,
+            description,
+            is_published,
+            allow_downloads,
+            created_at,
+            updated_at
+          `)
+                    .eq("gallery_id", gallery_id)
+                    .eq("client_id", client.client_id)
+                    .eq("is_published", true)
+                    .maybeSingle();
+
+            if (galleryError) {
+                throw galleryError;
+            }
+
+            if (!galleryData) {
+                throw new Error(
+                    "This gallery could not be found or is not currently available."
+                );
+            }
+
+            setGallery(galleryData);
+
+            /*
+             * Load booking information separately so the page
+             * remains compatible with the existing database schema.
+             */
+            if (galleryData.booking_id) {
+                const { data: bookingData, error: bookingError } =
+                    await supabase
+                        .from("bookings")
+                        .select(`
+              booking_id,
+              booking_date,
+              start_time,
+              end_time,
+              location,
+              status,
+              total_amount
+            `)
+                        .eq("booking_id", galleryData.booking_id)
+                        .maybeSingle();
+
+                if (bookingError) {
+                    console.warn(
+                        "Unable to load booking details:",
+                        bookingError
+                    );
+                } else {
+                    setBooking(bookingData);
+                }
+            }
+
+            /*
+             * Media RLS ensures that only media the client is
+             * permitted to access is returned.
+             */
+            const { data: mediaData, error: mediaError } =
+                await supabase
+                    .from("media")
+                    .select(`
+            media_id,
+            gallery_id,
+            photographer_id,
+            file_name,
+            storage_path,
+            media_type,
+            mime_type,
+            file_size,
+            thumbnail_path,
+            is_downloadable,
+            uploaded_at
+          `)
+                    .eq("gallery_id", gallery_id)
+                    .order("uploaded_at", { ascending: true });
+
+            if (mediaError) {
+                throw mediaError;
+            }
+
+            const mediaWithUrls = await Promise.all(
+                (mediaData || []).map(async (mediaItem) => {
+                    let previewUrl = null;
+
+                    /*
+                     * Prefer the thumbnail path when one exists.
+                     * Otherwise the original media path is used.
+                     */
+                    const previewPath =
+                        mediaItem.thumbnail_path ||
+                        mediaItem.storage_path;
+
+                    if (previewPath) {
+                        const {
+                            data: signedUrlData,
+                            error: signedUrlError,
+                        } = await supabase.storage
+                            .from("client-media")
+                            .createSignedUrl(
+                                previewPath,
+                                SIGNED_URL_DURATION
+                            );
+
+                        if (!signedUrlError) {
+                            previewUrl =
+                                signedUrlData?.signedUrl || null;
+                        }
+                    }
+
+                    return {
+                        ...mediaItem,
+                        previewUrl,
+                    };
+                })
+            );
+
+            setMedia(mediaWithUrls);
+        } catch (loadError) {
+            console.error(
+                "Error loading client gallery:",
+                loadError
+            );
+
+            setGallery(null);
+            setBooking(null);
+            setMedia([]);
+
+            setError(
+                loadError?.message ||
+                "Unable to load this gallery. Please try again."
+            );
+        } finally {
+            setLoading(false);
+        }
+    }, [gallery_id, user?.id]);
+
+    useEffect(() => {
+        if (!authLoading && user?.id) {
+            loadGallery();
+        }
+    }, [authLoading, user?.id, loadGallery]);
+
+    /*
+     * Escape closes the lightbox.
+     */
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") {
+                setSelectedMedia(null);
+            }
+
+            if (
+                event.key === "ArrowRight" &&
+                selectedMedia
+            ) {
+                navigateMedia(1);
+            }
+
+            if (
+                event.key === "ArrowLeft" &&
+                selectedMedia
+            ) {
+                navigateMedia(-1);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener(
+                "keydown",
+                handleKeyDown
+            );
+        };
+    });
+
+    /*
+     * Prevent the page behind the lightbox from scrolling.
+     */
+    useEffect(() => {
+        if (!selectedMedia) return;
+
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [selectedMedia]);
+
+    const photos = useMemo(
+        () =>
+            media.filter(
+                (item) => !isVideoMedia(item)
+            ),
+        [media]
+    );
+
+    const videos = useMemo(
+        () =>
+            media.filter((item) =>
+                isVideoMedia(item)
+            ),
+        [media]
+    );
+
+    const downloadableMedia = useMemo(
+        () =>
+            media.filter(
+                (item) => item.is_downloadable !== false
+            ),
+        [media]
+    );
+
+    const downloadableCount = downloadableMedia.length;
+
+    const selectedIndex = useMemo(() => {
+        if (!selectedMedia) return -1;
+
+        return media.findIndex(
+            (item) =>
+                item.media_id === selectedMedia.media_id
+        );
+    }, [media, selectedMedia]);
+
+    const navigateMedia = (direction) => {
+        if (
+            selectedIndex === -1 ||
+            media.length === 0
+        ) {
+            return;
+        }
+
+        const nextIndex =
+            (selectedIndex +
+                direction +
+                media.length) %
+            media.length;
+
+        const nextMedia = media[nextIndex];
+
+        if (nextMedia) {
+            setSelectedMedia(nextMedia);
+        }
+    };
+
+    const openMedia = (mediaItem) => {
+        setSelectedMedia(mediaItem);
+    };
+
+    /*
+     * Download one individual media file.
+     */
+    const handleDownload = async (mediaItem) => {
+        if (!gallery?.allow_downloads) return;
+        if (mediaItem.is_downloadable === false) return;
+
+        setDownloadingId(mediaItem.media_id);
+
+        try {
+            const {
+                data: signedUrlData,
+                error: signedUrlError,
+            } = await supabase.storage
+                .from("client-media")
+                .createSignedUrl(
+                    mediaItem.storage_path,
+                    60
+                );
+
+            if (signedUrlError) {
+                throw signedUrlError;
+            }
+
+            const downloadUrl =
+                signedUrlData?.signedUrl;
+
+            if (!downloadUrl) {
+                throw new Error(
+                    "Unable to create a download link."
+                );
+            }
+
+            /*
+             * Fetch the private file first, then create a
+             * temporary browser download. This avoids navigating
+             * the client away from the gallery.
+             */
+            const response = await fetch(downloadUrl);
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to download this file."
+                );
+            }
+
+            const blob = await response.blob();
+            const blobUrl =
+                URL.createObjectURL(blob);
+
+            const link =
+                document.createElement("a");
+
+            link.href = blobUrl;
+            link.download =
+                mediaItem.file_name ||
+                "lensflow-gallery-file";
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            URL.revokeObjectURL(blobUrl);
+        } catch (downloadError) {
+            console.error(
+                "Download error:",
+                downloadError
+            );
+
+            window.alert(
+                "Unable to download this file right now. Please try again."
+            );
+        } finally {
+            setDownloadingId(null);
+        }
+    };
+
+    /*
+     * Download all downloadable gallery media as a ZIP file.
+     */
+    const handleDownloadAll = async () => {
+        if (!gallery?.allow_downloads) return;
+        if (downloadableMedia.length === 0) return;
+        if (downloadingAll) return;
+
+        setDownloadingAll(true);
+        setDownloadProgress({
+            current: 0,
+            total: downloadableMedia.length,
+        });
+
+        try {
+            const zip = new JSZip();
+            const usedFileNames = new Set();
+            let successfulDownloads = 0;
+
+            for (
+                let index = 0;
+                index < downloadableMedia.length;
+                index += 1
+            ) {
+                const mediaItem =
+                    downloadableMedia[index];
+
+                setDownloadProgress({
+                    current: index + 1,
+                    total: downloadableMedia.length,
+                });
+
+                try {
+                    const {
+                        data: signedUrlData,
+                        error: signedUrlError,
+                    } = await supabase.storage
+                        .from("client-media")
+                        .createSignedUrl(
+                            mediaItem.storage_path,
+                            60
+                        );
+
+                    if (signedUrlError) {
+                        throw signedUrlError;
+                    }
+
+                    const downloadUrl =
+                        signedUrlData?.signedUrl;
+
+                    if (!downloadUrl) {
+                        throw new Error(
+                            "Unable to create a download link."
+                        );
+                    }
+
+                    const response =
+                        await fetch(downloadUrl);
+
+                    if (!response.ok) {
+                        throw new Error(
+                            "Unable to download the file."
+                        );
+                    }
+
+                    const blob =
+                        await response.blob();
+
+                    const fileName =
+                        getUniqueFileName(
+                            mediaItem.file_name ||
+                            `${getMediaLabel(mediaItem).toLowerCase()}-${index + 1}`,
+                            usedFileNames
+                        );
+
+                    zip.file(fileName, blob);
+
+                    successfulDownloads += 1;
+                } catch (fileError) {
+                    /*
+                     * Continue processing the remaining files if
+                     * one individual file fails.
+                     */
+                    console.error(
+                        `Failed to add "${mediaItem.file_name}" (${formatFileSize(
+                            mediaItem.file_size
+                        )}) to ZIP:`,
+                        fileError
+                    );
+                }
+            }
+
+            if (successfulDownloads === 0) {
+                throw new Error(
+                    "None of the gallery files could be downloaded."
+                );
+            }
+
+            /*
+             * Generate the ZIP after all files have been fetched.
+             */
+            setDownloadProgress({
+                current: downloadableMedia.length,
+                total: downloadableMedia.length,
+            });
+
+            const zipBlob =
+                await zip.generateAsync({
+                    type: "blob",
+                    compression: "DEFLATE",
+                    compressionOptions: {
+                        level: 6,
+                    },
+                });
+
+            const zipUrl =
+                URL.createObjectURL(zipBlob);
+
+            const link =
+                document.createElement("a");
+
+            link.href = zipUrl;
+            link.download = `${sanitizeFileName(
+                gallery.name,
+                "lensflow-gallery"
+            )}.zip`;
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            URL.revokeObjectURL(zipUrl);
+
+            /*
+             * If some files failed, let the user know that the ZIP
+             * contains the files that were successfully downloaded.
+             */
+            if (
+                successfulDownloads <
+                downloadableMedia.length
+            ) {
+                window.alert(
+                    `${successfulDownloads} of ${downloadableMedia.length} files were added to the ZIP. Some files could not be downloaded.`
+                );
+            }
+        } catch (downloadAllError) {
+            console.error(
+                "Download all error:",
+                downloadAllError
+            );
+
+            window.alert(
+                downloadAllError?.message ||
+                "Unable to download the gallery right now. Please try again."
+            );
+        } finally {
+            setDownloadingAll(false);
+
+            setDownloadProgress({
+                current: 0,
+                total: 0,
+            });
+        }
+    };
+
+    const handleBack = () => {
+        navigate("/client/galleries");
+    };
+
+    if (authLoading || loading) {
+        return (
+            <div className="gallery-details-page">
+                <div className="gallery-details-loading">
+                    <div className="gallery-details-spinner" />
+                    <p>Loading your gallery...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !gallery) {
+        return (
+            <div className="gallery-details-page">
+                <div className="gallery-details-error">
+                    <div className="gallery-details-error-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            aria-hidden="true"
+                        >
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="9"
+                            />
+                            <path d="M12 8v5" />
+                            <circle
+                                cx="12"
+                                cy="16.5"
+                                r=".5"
+                            />
+                        </svg>
+                    </div>
+
+                    <h2>Gallery unavailable</h2>
+
+                    <p>
+                        {error ||
+                            "This gallery could not be found."}
+                    </p>
+
+                    <div className="gallery-details-error-actions">
+                        <button
+                            type="button"
+                            className="gallery-details-secondary-button"
+                            onClick={handleBack}
+                        >
+                            Back to Galleries
+                        </button>
+
+                        <button
+                            type="button"
+                            className="gallery-details-primary-button"
+                            onClick={loadGallery}
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="gallery-details-page">
+            <div className="gallery-details-container">
+                {/* Back navigation */}
+                <button
+                    type="button"
+                    className="gallery-details-back"
+                    onClick={handleBack}
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                    >
+                        <path d="M19 12H5" />
+                        <path d="m12 19-7-7 7-7" />
+                    </svg>
+
+                    Back to Galleries
+                </button>
+
+                {/* Header */}
+                <header className="gallery-details-header">
+                    <div className="gallery-details-header-main">
+                        <div className="gallery-details-eyebrow">
+                            Your photography gallery
+                        </div>
+
+                        <h1>{gallery.name}</h1>
+
+                        {gallery.description && (
+                            <p className="gallery-details-description">
+                                {gallery.description}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="gallery-details-header-actions">
+                        {gallery.allow_downloads &&
+                            downloadableCount > 0 && (
+                                <button
+                                    type="button"
+                                    className="gallery-details-download-all"
+                                    onClick={handleDownloadAll}
+                                    disabled={downloadingAll}
+                                >
+                                    {downloadingAll ? (
+                                        <>
+                                            <span className="gallery-details-button-spinner" />
+
+                                            <span>
+                                                Preparing{" "}
+                                                {
+                                                    downloadProgress.current
+                                                }{" "}
+                                                /{" "}
+                                                {
+                                                    downloadProgress.total
+                                                }
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                                aria-hidden="true"
+                                            >
+                                                <path d="M12 3v12" />
+                                                <path d="m7 10 5 5 5-5" />
+                                                <path d="M5 21h14" />
+                                            </svg>
+
+                                            Download All
+                                        </>
+                                    )}
+                                </button>
+                            )}
+
+                        <div className="gallery-details-ready">
+                            <span className="gallery-details-ready-dot" />
+                            Ready to view
+                        </div>
+                    </div>
+                </header>
+
+                {/* Gallery information */}
+                <section className="gallery-details-info">
+                    <div className="gallery-info-card">
+                        <div className="gallery-info-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                aria-hidden="true"
+                            >
+                                <rect
+                                    x="3"
+                                    y="4"
+                                    width="18"
+                                    height="17"
+                                    rx="2"
+                                />
+                                <path d="M16 2v4M8 2v4M3 10h18" />
+                            </svg>
+                        </div>
+
+                        <div>
+                            <span>Session date</span>
+
+                            <strong>
+                                {formatDate(
+                                    booking?.booking_date
+                                )}
+                            </strong>
+                        </div>
+                    </div>
+
+                    {booking?.start_time && (
+                        <div className="gallery-info-card">
+                            <div className="gallery-info-icon">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    aria-hidden="true"
+                                >
+                                    <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="9"
+                                    />
+                                    <path d="M12 7v5l3 2" />
+                                </svg>
+                            </div>
+
+                            <div>
+                                <span>Session time</span>
+
+                                <strong>
+                                    {formatTime(
+                                        booking.start_time
+                                    )}
+
+                                    {booking.end_time
+                                        ? ` – ${formatTime(
+                                            booking.end_time
+                                        )}`
+                                        : ""}
+                                </strong>
+                            </div>
+                        </div>
+                    )}
+
+                    {booking?.location && (
+                        <div className="gallery-info-card">
+                            <div className="gallery-info-icon">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                                    <circle
+                                        cx="12"
+                                        cy="10"
+                                        r="2.5"
+                                    />
+                                </svg>
+                            </div>
+
+                            <div>
+                                <span>Location</span>
+                                <strong>{booking.location}</strong>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="gallery-info-card">
+                        <div className="gallery-info-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                aria-hidden="true"
+                            >
+                                <rect
+                                    x="3"
+                                    y="5"
+                                    width="18"
+                                    height="14"
+                                    rx="2"
+                                />
+                                <circle
+                                    cx="8.5"
+                                    cy="10"
+                                    r="1.5"
+                                />
+                                <path d="m3 17 5-5 4 4 3-3 6 6" />
+                            </svg>
+                        </div>
+
+                        <div>
+                            <span>Gallery content</span>
+
+                            <strong>
+                                {media.length}{" "}
+                                {media.length === 1
+                                    ? "item"
+                                    : "items"}
+                            </strong>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Download notice */}
+                <section
+                    className={`gallery-details-download-banner ${gallery.allow_downloads
+                            ? "available"
+                            : "disabled"
+                        }`}
+                >
+                    <div className="gallery-download-banner-icon">
+                        {gallery.allow_downloads ? (
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                aria-hidden="true"
+                            >
+                                <path d="M12 3v12" />
+                                <path d="m7 10 5 5 5-5" />
+                                <path d="M5 21h14" />
+                            </svg>
+                        ) : (
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                aria-hidden="true"
+                            >
+                                <rect
+                                    x="5"
+                                    y="10"
+                                    width="14"
+                                    height="10"
+                                    rx="2"
+                                />
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                            </svg>
+                        )}
+                    </div>
+
+                    <div className="gallery-download-banner-content">
+                        <strong>
+                            {gallery.allow_downloads
+                                ? "Downloads available"
+                                : "Downloads disabled"}
+                        </strong>
+
+                        <p>
+                            {gallery.allow_downloads
+                                ? `${downloadableCount} ${downloadableCount === 1
+                                    ? "item is"
+                                    : "items are"
+                                } available to download from this gallery.`
+                                : "Your photographer has disabled downloads for this gallery. You can still view all available media."}
+                        </p>
+                    </div>
+                </section>
+
+                {/* Media section */}
+                <section className="gallery-details-media-section">
+                    <div className="gallery-details-section-heading">
+                        <div>
+                            <span className="gallery-details-section-eyebrow">
+                                Gallery
+                            </span>
+
+                            <h2>Your photos & videos</h2>
+                        </div>
+
+                        <div className="gallery-details-media-summary">
+                            <span>
+                                {photos.length} photos
+                            </span>
+
+                            <span>
+                                {videos.length} videos
+                            </span>
+                        </div>
+                    </div>
+
+                    {media.length === 0 ? (
+                        <div className="gallery-details-empty">
+                            <div className="gallery-details-empty-icon">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    aria-hidden="true"
+                                >
+                                    <rect
+                                        x="3"
+                                        y="4"
+                                        width="18"
+                                        height="16"
+                                        rx="2"
+                                    />
+                                    <circle
+                                        cx="8.5"
+                                        cy="9"
+                                        r="1.5"
+                                    />
+                                    <path d="m3 17 5-5 4 4 3-3 6 6" />
+                                </svg>
+                            </div>
+
+                            <h3>No media yet</h3>
+
+                            <p>
+                                Your photographer has not added any
+                                media to this gallery yet.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="gallery-details-grid">
+                            {media.map((mediaItem) => {
+                                const video =
+                                    isVideoMedia(mediaItem);
+
+                                return (
+                                    <article
+                                        key={mediaItem.media_id}
+                                        className={`gallery-media-card ${video ? "video" : ""
+                                            }`}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="gallery-media-preview"
+                                            onClick={() =>
+                                                openMedia(mediaItem)
+                                            }
+                                            aria-label={`View ${mediaItem.file_name ||
+                                                getMediaLabel(
+                                                    mediaItem
+                                                )
+                                                }`}
+                                        >
+                                            {mediaItem.previewUrl ? (
+                                                video ? (
+                                                    <video
+                                                        src={
+                                                            mediaItem.previewUrl
+                                                        }
+                                                        preload="metadata"
+                                                        muted
+                                                        playsInline
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src={
+                                                            mediaItem.previewUrl
+                                                        }
+                                                        alt={
+                                                            mediaItem.file_name ||
+                                                            "Gallery photo"
+                                                        }
+                                                        loading="lazy"
+                                                    />
+                                                )
+                                            ) : (
+                                                <div className="gallery-media-no-preview">
+                                                    {getMediaIcon(
+                                                        mediaItem
+                                                    )}
+
+                                                    <span>
+                                                        Preview unavailable
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            <div className="gallery-media-overlay">
+                                                <span className="gallery-media-view-icon">
+                                                    {video ? (
+                                                        <svg
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.8"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <polygon points="8,5 19,12 8,19" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.8"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <path d="M15 3h6v6" />
+                                                            <path d="m21 3-8 8" />
+                                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                                        </svg>
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            <span className="gallery-media-type">
+                                                {getMediaIcon(
+                                                    mediaItem
+                                                )}
+
+                                                {getMediaLabel(
+                                                    mediaItem
+                                                )}
+                                            </span>
+
+                                            {video && (
+                                                <span className="gallery-video-badge">
+                                                    Video
+                                                </span>
+                                            )}
+                                        </button>
+
+                                        <div className="gallery-media-card-footer">
+                                            <div className="gallery-media-file">
+                                                <strong
+                                                    title={
+                                                        mediaItem.file_name ||
+                                                        getMediaLabel(
+                                                            mediaItem
+                                                        )
+                                                    }
+                                                >
+                                                    {mediaItem.file_name ||
+                                                        getMediaLabel(
+                                                            mediaItem
+                                                        )}
+                                                </strong>
+
+                                                {mediaItem.file_size && (
+                                                    <span>
+                                                        {formatFileSize(
+                                                            mediaItem.file_size
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {gallery.allow_downloads &&
+                                                mediaItem.is_downloadable !==
+                                                false && (
+                                                    <button
+                                                        type="button"
+                                                        className="gallery-media-download"
+                                                        onClick={() =>
+                                                            handleDownload(
+                                                                mediaItem
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            downloadingId ===
+                                                            mediaItem.media_id ||
+                                                            downloadingAll
+                                                        }
+                                                        aria-label={`Download ${mediaItem.file_name ||
+                                                            getMediaLabel(
+                                                                mediaItem
+                                                            )
+                                                            }`}
+                                                        title="Download"
+                                                    >
+                                                        {downloadingId ===
+                                                            mediaItem.media_id ? (
+                                                            <span className="gallery-download-spinner" />
+                                                        ) : (
+                                                            <svg
+                                                                viewBox="0 0 24 24"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                strokeWidth="1.8"
+                                                                aria-hidden="true"
+                                                            >
+                                                                <path d="M12 3v12" />
+                                                                <path d="m7 10 5 5 5-5" />
+                                                                <path d="M5 21h14" />
+                                                            </svg>
+                                                        )}
+                                                    </button>
+                                                )}
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    )}
+                </section>
+
+                {/* Footer information */}
+                <footer className="gallery-details-footer">
+                    <div className="gallery-details-footer-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            aria-hidden="true"
+                        >
+                            <path d="M12 3v18" />
+                            <path d="M3 12h18" />
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="9"
+                            />
+                        </svg>
+                    </div>
+
+                    <div>
+                        <strong>
+                            Your gallery is securely hosted by LensFlow
+                        </strong>
+
+                        <p>
+                            Your photographer controls the availability
+                            and download permissions for this gallery.
+                        </p>
+                    </div>
+                </footer>
+            </div>
+
+            {/* Lightbox */}
+            {selectedMedia && (
+                <div
+                    className="gallery-lightbox"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Gallery media viewer"
+                    onMouseDown={(event) => {
+                        if (
+                            event.target ===
+                            event.currentTarget
+                        ) {
+                            setSelectedMedia(null);
+                        }
+                    }}
+                >
+                    <div className="gallery-lightbox-toolbar">
+                        <div className="gallery-lightbox-title">
+                            <span>
+                                {selectedIndex + 1} /{" "}
+                                {media.length}
+                            </span>
+
+                            <strong>
+                                {selectedMedia.file_name ||
+                                    getMediaLabel(
+                                        selectedMedia
+                                    )}
+                            </strong>
+                        </div>
+
+                        <div className="gallery-lightbox-actions">
+                            {gallery.allow_downloads &&
+                                selectedMedia.is_downloadable !==
+                                false && (
+                                    <button
+                                        type="button"
+                                        className="gallery-lightbox-button"
+                                        onClick={() =>
+                                            handleDownload(
+                                                selectedMedia
+                                            )
+                                        }
+                                        disabled={
+                                            downloadingId ===
+                                            selectedMedia.media_id ||
+                                            downloadingAll
+                                        }
+                                        title="Download"
+                                        aria-label="Download media"
+                                    >
+                                        {downloadingId ===
+                                            selectedMedia.media_id ? (
+                                            <span className="gallery-download-spinner" />
+                                        ) : (
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                                aria-hidden="true"
+                                            >
+                                                <path d="M12 3v12" />
+                                                <path d="m7 10 5 5 5-5" />
+                                                <path d="M5 21h14" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                )}
+
+                            <button
+                                type="button"
+                                className="gallery-lightbox-button"
+                                onClick={() =>
+                                    setSelectedMedia(null)
+                                }
+                                title="Close"
+                                aria-label="Close viewer"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M6 6l12 12M18 6 6 18" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {media.length > 1 && (
+                        <>
+                            <button
+                                type="button"
+                                className="gallery-lightbox-nav previous"
+                                onClick={() =>
+                                    navigateMedia(-1)
+                                }
+                                aria-label="Previous media"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                >
+                                    <path d="m15 18-6-6 6-6" />
+                                </svg>
+                            </button>
+
+                            <button
+                                type="button"
+                                className="gallery-lightbox-nav next"
+                                onClick={() =>
+                                    navigateMedia(1)
+                                }
+                                aria-label="Next media"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                >
+                                    <path d="m9 18 6-6-6-6" />
+                                </svg>
+                            </button>
+                        </>
+                    )}
+
+                    <div className="gallery-lightbox-content">
+                        {isVideoMedia(
+                            selectedMedia
+                        ) ? (
+                            <video
+                                className="gallery-lightbox-video"
+                                src={
+                                    selectedMedia.previewUrl
+                                }
+                                controls
+                                autoPlay
+                                playsInline
+                            />
+                        ) : selectedMedia.previewUrl ? (
+                            <img
+                                className="gallery-lightbox-image"
+                                src={
+                                    selectedMedia.previewUrl
+                                }
+                                alt={
+                                    selectedMedia.file_name ||
+                                    "Gallery photo"
+                                }
+                            />
+                        ) : (
+                            <div className="gallery-lightbox-unavailable">
+                                <div>
+                                    {getMediaIcon(
+                                        selectedMedia
+                                    )}
+                                </div>
+
+                                <p>
+                                    Preview unavailable
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="gallery-lightbox-hint">
+                        Use ← → to navigate · Press Esc to close
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default GalleryDetails;

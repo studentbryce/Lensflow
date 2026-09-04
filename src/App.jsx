@@ -41,6 +41,7 @@ import ClientDashboard from "./pages/client/Dashboard";
 import ClientBookings from "./pages/client/Bookings";
 import ClientInvoices from "./pages/client/Invoices";
 import ClientGalleries from "./pages/client/Galleries";
+import ClientGalleryDetails from "./pages/client/GalleryDetails";
 import ClientMessages from "./pages/client/Messages";
 import ClientReviews from "./pages/client/Reviews";
 import ClientProfile from "./pages/client/Profile";
@@ -242,6 +243,11 @@ export default function App() {
               <Route
                 path="galleries"
                 element={<ClientGalleries />}
+              />
+
+              <Route
+                path="galleries/:gallery_id"
+                element={<ClientGalleryDetails />}
               />
 
               <Route
