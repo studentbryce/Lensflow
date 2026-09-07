@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { BiMenu as Menu } from "react-icons/bi";
 import { useAuth } from "../context/AuthContext";
 
 import PhotographerSidebar from "../components/PhotographerSidebar";

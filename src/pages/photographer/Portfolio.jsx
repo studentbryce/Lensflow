@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  BiCheckCircle,
+  BiCollection,
+  BiErrorCircle,
+  BiImage,
+  BiMove,
+  BiPlus,
+  BiCircle,
+} from "react-icons/bi";
 import { supabase } from "../../lib/supabaseClient";
 import "./Portfolio.css";
 
@@ -591,7 +600,7 @@ export default function Portfolio() {
             )
           }
         >
-          <span>+</span>
+          <BiPlus aria-hidden="true" />
           Add Portfolio Item
         </button>
       </div>
@@ -624,7 +633,7 @@ export default function Portfolio() {
 
         <div className="portfolio-summary-card">
           <div className="portfolio-summary-icon">
-            ◇
+            <BiCollection aria-hidden="true" />
           </div>
 
           <div>
@@ -638,7 +647,7 @@ export default function Portfolio() {
 
         <div className="portfolio-summary-card">
           <div className="portfolio-summary-icon">
-            ✓
+            <BiCheckCircle aria-hidden="true" />
           </div>
 
           <div>
@@ -657,7 +666,7 @@ export default function Portfolio() {
 
         <div className="portfolio-summary-card">
           <div className="portfolio-summary-icon">
-            ○
+            <BiCircle aria-hidden="true" />
           </div>
 
           <div>
@@ -684,7 +693,7 @@ export default function Portfolio() {
         <div className="portfolio-empty">
 
           <div className="portfolio-empty-icon">
-            ◇
+            <BiImage aria-hidden="true" />
           </div>
 
           <h2>
@@ -706,7 +715,7 @@ export default function Portfolio() {
               )
             }
           >
-            <span>+</span>
+            <BiPlus aria-hidden="true" />
             Add Your First Item
           </button>
 
@@ -728,7 +737,7 @@ export default function Portfolio() {
             <div className="portfolio-order-info">
 
               <div className="portfolio-order-icon">
-                ⠿
+                <BiMove aria-hidden="true" />
               </div>
 
               <div className="portfolio-order-text">
@@ -831,7 +840,7 @@ export default function Portfolio() {
                         />
                       ) : (
                         <div className="portfolio-no-image">
-                          <span>◇</span>
+                          <BiImage aria-hidden="true" />
                           <p>No image</p>
                         </div>
                       )}
@@ -853,7 +862,7 @@ export default function Portfolio() {
                         title="Drag to reorder"
                         aria-label={`Drag ${item.title || "portfolio item"} to reorder`}
                       >
-                        ⠿
+                        <BiMove aria-hidden="true" />
                       </div>
 
                       {/* STATUS */}
@@ -992,7 +1001,7 @@ export default function Portfolio() {
           >
 
             <div className="portfolio-modal-icon">
-              !
+              <BiErrorCircle aria-hidden="true" />
             </div>
 
             <h2>

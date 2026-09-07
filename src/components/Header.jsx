@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UserCircle } from "lucide-react";
+import { BiUser } from "react-icons/bi";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import brandLogo from "../assets/images/Lensflow_brand_logo-transparent.png";
@@ -40,7 +40,7 @@ function Header() {
 					aria-label="Open profile"
 					title="Open profile"
 				>
-					<UserCircle size={30} strokeWidth={1.6} aria-hidden="true" />
+					<BiUser size={24} aria-hidden="true" />
 				</Link>
 			</div>
 		</header>

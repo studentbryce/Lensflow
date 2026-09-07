@@ -1,0 +1,56 @@
+.client-invoices-page { width: 100%; max-width: 1200px; margin: 0 auto; padding: 8px 0 60px; }
+.client-invoices-header { margin-bottom: 30px; }
+.client-invoices-page .client-invoices-eyebrow { margin-bottom: 7px; color: var(--color-accent); font: 700 11px var(--font-navigation); letter-spacing: 1.6px; text-transform: uppercase; }
+.client-invoices-header h1 { margin-bottom: 10px; font-size: clamp(32px, 3vw, 42px); }
+.client-invoices-header > p:last-child { font: 14px/1.65 var(--font-navigation); }
+.client-invoices-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.client-invoices-stat { display: flex; align-items: center; gap: 14px; padding: 22px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: var(--shadow-small); min-width: 0; }
+.client-invoices-stat svg { flex-shrink: 0; color: var(--color-accent); }
+.client-invoices-stat span { display: block; font: 12px/1.5 var(--font-navigation); }
+.client-invoices-stat strong { display: block; margin-top: 5px; color: var(--color-heading); font: 500 clamp(20px, 2vw, 28px)/1.3 var(--font-heading); overflow-wrap: anywhere; }
+.client-invoices-summary-note { margin: 12px 0 26px; font: 12px/1.6 var(--font-navigation); }
+.client-invoices-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border); }
+.client-invoices-search { display: flex; flex: 1 1 280px; align-items: center; gap: 10px; padding-left: 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
+.client-invoices-search svg { flex-shrink: 0; color: var(--color-accent); }
+.client-invoices-search input { width: 100%; min-width: 0; border: 0; background: transparent; font-size: 12px; }
+.client-invoices-filters { display: flex; flex-wrap: wrap; gap: 5px; }
+.client-invoices-filters button, .client-invoices-state button { padding: 10px 14px; border-radius: 20px; background: transparent; color: var(--color-text); font-size: 11px; text-transform: capitalize; }
+.client-invoices-filters button span { margin-left: 4px; }
+.client-invoices-filters button:hover { background: var(--color-accent-light); }
+.client-invoices-filters button[aria-pressed="true"], .client-invoices-state button { color: white; background: var(--color-accent-dark); }
+.client-invoices-result-count { margin: 18px 0; font: 12px var(--font-navigation); }
+.client-invoices-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 20px; }
+.client-invoice-card { min-width: 0; padding: 24px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: var(--shadow-small); overflow-wrap: anywhere; }
+.client-invoice-card-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.client-invoice-card h2 { font-size: 22px; }
+.client-invoice-status { padding: 6px 12px; border-radius: 20px; background: var(--color-accent-light); color: var(--color-accent-dark); font: 600 10px var(--font-navigation); text-transform: uppercase; letter-spacing: .6px; }
+.client-invoice-status[data-status="paid"] { color: #44644a; background: #edf3ee; }
+.client-invoice-status[data-status="overdue"] { color: #914e47; background: #f7eae8; }
+.client-invoice-status[data-status="cancelled"] { color: var(--color-text); background: var(--color-surface-soft); }
+.client-invoice-service { margin: 18px 0 8px; font: 14px/1.6 var(--font-navigation); }
+.client-invoice-amount { color: var(--color-heading); font: 500 30px var(--font-heading); }
+.client-invoice-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; font: 12px/1.6 var(--font-navigation); }
+.client-invoice-dates dd { margin: 4px 0 0; font-weight: 600; }
+.client-invoice-overdue { color: #914e47; }
+.client-invoice-details { border-top: 1px solid var(--color-border-light); padding-top: 16px; }
+.client-invoice-details summary { cursor: pointer; color: var(--color-accent-dark); font: 600 12px/1.6 var(--font-navigation); }
+.client-invoice-details summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
+.client-invoice-table-scroll { overflow-x: auto; margin-top: 18px; }
+.client-invoice-table-scroll table { width: 100%; border-collapse: collapse; font: 12px/1.6 var(--font-navigation); }
+.client-invoice-table-scroll caption { text-align: left; font-weight: 600; padding-bottom: 10px; }
+.client-invoice-table-scroll th, .client-invoice-table-scroll td { padding: 10px 8px; text-align: right; border-bottom: 1px solid var(--color-border-light); }
+.client-invoice-table-scroll th:first-child, .client-invoice-table-scroll td:first-child { text-align: left; min-width: 140px; }
+.client-invoice-table-scroll th:not(:first-child), .client-invoice-table-scroll td:not(:first-child) { white-space: nowrap; }
+.client-invoice-totals > div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; font: 12px/1.6 var(--font-navigation); }
+.client-invoice-totals dd { margin: 0; text-align: right; }
+.client-invoice-totals > div:last-child { border-top: 1px solid var(--color-border); font-weight: 700; }
+.client-invoice-notes h3 { font-size: 18px; margin-bottom: 8px; }
+.client-invoice-notes p { white-space: pre-wrap; font: 12px/1.7 var(--font-navigation); }
+.client-invoice-link { display: inline-block; margin-top: 18px; color: var(--color-accent-dark); font: 600 12px/1.7 var(--font-navigation); }
+.client-invoice-payment-help { margin-top: 18px; font: 12px/1.7 var(--font-navigation); }
+.client-invoices-state { padding: 60px 24px; border: 1px dashed var(--color-border); border-radius: 12px; text-align: center; }
+.client-invoices-state > svg { margin-bottom: 16px; color: var(--color-accent); }
+.client-invoices-state h2 { margin-bottom: 12px; font-size: 25px; }
+.client-invoices-state button { margin-top: 18px; }
+@media (max-width: 1050px) { .client-invoices-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .client-invoices-grid { grid-template-columns: 1fr; } .client-invoices-stat { padding: 14px; gap: 10px; } .client-invoice-card { padding: 18px; } }

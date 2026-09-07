@@ -1,3 +1,4 @@
+import { BiPlay, BiImage, BiErrorCircle, BiArrowBack, BiDownload, BiCalendar, BiTimeFive, BiMap, BiImages, BiLockAlt, BiLinkExternal, BiPlusCircle, BiX, BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import JSZip from "jszip";
@@ -68,30 +69,12 @@ const getMediaLabel = (media) => {
 const getMediaIcon = (media) => {
     if (isVideoMedia(media)) {
         return (
-            <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                aria-hidden="true"
-            >
-                <polygon points="8,5 19,12 8,19" />
-            </svg>
+            <BiPlay aria-hidden="true" />
         );
     }
 
     return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            aria-hidden="true"
-        >
-            <rect x="3" y="4" width="18" height="16" rx="2" />
-            <circle cx="8.5" cy="9" r="1.5" />
-            <path d="m3 17 5-5 4 4 3-3 6 6" />
-        </svg>
+        <BiImage aria-hidden="true" />
     );
 };
 
@@ -709,25 +692,7 @@ function GalleryDetails() {
             <div className="gallery-details-page">
                 <div className="gallery-details-error">
                     <div className="gallery-details-error-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            aria-hidden="true"
-                        >
-                            <circle
-                                cx="12"
-                                cy="12"
-                                r="9"
-                            />
-                            <path d="M12 8v5" />
-                            <circle
-                                cx="12"
-                                cy="16.5"
-                                r=".5"
-                            />
-                        </svg>
+                        <BiErrorCircle aria-hidden="true" />
                     </div>
 
                     <h2>Gallery unavailable</h2>
@@ -768,16 +733,7 @@ function GalleryDetails() {
                     className="gallery-details-back"
                     onClick={handleBack}
                 >
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        aria-hidden="true"
-                    >
-                        <path d="M19 12H5" />
-                        <path d="m12 19-7-7 7-7" />
-                    </svg>
+                    <BiArrowBack aria-hidden="true" />
 
                     Back to Galleries
                 </button>
@@ -824,17 +780,7 @@ function GalleryDetails() {
                                         </>
                                     ) : (
                                         <>
-                                            <svg
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="1.8"
-                                                aria-hidden="true"
-                                            >
-                                                <path d="M12 3v12" />
-                                                <path d="m7 10 5 5 5-5" />
-                                                <path d="M5 21h14" />
-                                            </svg>
+                                            <BiDownload aria-hidden="true" />
 
                                             Download All
                                         </>
@@ -853,22 +799,7 @@ function GalleryDetails() {
                 <section className="gallery-details-info">
                     <div className="gallery-info-card">
                         <div className="gallery-info-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                aria-hidden="true"
-                            >
-                                <rect
-                                    x="3"
-                                    y="4"
-                                    width="18"
-                                    height="17"
-                                    rx="2"
-                                />
-                                <path d="M16 2v4M8 2v4M3 10h18" />
-                            </svg>
+                            <BiCalendar aria-hidden="true" />
                         </div>
 
                         <div>
@@ -885,20 +816,7 @@ function GalleryDetails() {
                     {booking?.start_time && (
                         <div className="gallery-info-card">
                             <div className="gallery-info-icon">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                    aria-hidden="true"
-                                >
-                                    <circle
-                                        cx="12"
-                                        cy="12"
-                                        r="9"
-                                    />
-                                    <path d="M12 7v5l3 2" />
-                                </svg>
+                                <BiTimeFive aria-hidden="true" />
                             </div>
 
                             <div>
@@ -922,20 +840,7 @@ function GalleryDetails() {
                     {booking?.location && (
                         <div className="gallery-info-card">
                             <div className="gallery-info-icon">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                    aria-hidden="true"
-                                >
-                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                    <circle
-                                        cx="12"
-                                        cy="10"
-                                        r="2.5"
-                                    />
-                                </svg>
+                                <BiMap aria-hidden="true" />
                             </div>
 
                             <div>
@@ -947,27 +852,7 @@ function GalleryDetails() {
 
                     <div className="gallery-info-card">
                         <div className="gallery-info-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                aria-hidden="true"
-                            >
-                                <rect
-                                    x="3"
-                                    y="5"
-                                    width="18"
-                                    height="14"
-                                    rx="2"
-                                />
-                                <circle
-                                    cx="8.5"
-                                    cy="10"
-                                    r="1.5"
-                                />
-                                <path d="m3 17 5-5 4 4 3-3 6 6" />
-                            </svg>
+                            <BiImages aria-hidden="true" />
                         </div>
 
                         <div>
@@ -992,34 +877,9 @@ function GalleryDetails() {
                 >
                     <div className="gallery-download-banner-icon">
                         {gallery.allow_downloads ? (
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                aria-hidden="true"
-                            >
-                                <path d="M12 3v12" />
-                                <path d="m7 10 5 5 5-5" />
-                                <path d="M5 21h14" />
-                            </svg>
+                            <BiDownload aria-hidden="true" />
                         ) : (
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                aria-hidden="true"
-                            >
-                                <rect
-                                    x="5"
-                                    y="10"
-                                    width="14"
-                                    height="10"
-                                    rx="2"
-                                />
-                                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                            </svg>
+                            <BiLockAlt aria-hidden="true" />
                         )}
                     </div>
 
@@ -1066,27 +926,7 @@ function GalleryDetails() {
                     {media.length === 0 ? (
                         <div className="gallery-details-empty">
                             <div className="gallery-details-empty-icon">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                    aria-hidden="true"
-                                >
-                                    <rect
-                                        x="3"
-                                        y="4"
-                                        width="18"
-                                        height="16"
-                                        rx="2"
-                                    />
-                                    <circle
-                                        cx="8.5"
-                                        cy="9"
-                                        r="1.5"
-                                    />
-                                    <path d="m3 17 5-5 4 4 3-3 6 6" />
-                                </svg>
+                                <BiImage aria-hidden="true" />
                             </div>
 
                             <h3>No media yet</h3>
@@ -1157,27 +997,9 @@ function GalleryDetails() {
                                             <div className="gallery-media-overlay">
                                                 <span className="gallery-media-view-icon">
                                                     {video ? (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            strokeWidth="1.8"
-                                                            aria-hidden="true"
-                                                        >
-                                                            <polygon points="8,5 19,12 8,19" />
-                                                        </svg>
+                                                        <BiPlay aria-hidden="true" />
                                                     ) : (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            strokeWidth="1.8"
-                                                            aria-hidden="true"
-                                                        >
-                                                            <path d="M15 3h6v6" />
-                                                            <path d="m21 3-8 8" />
-                                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                                        </svg>
+                                                        <BiLinkExternal aria-hidden="true" />
                                                     )}
                                                 </span>
                                             </div>
@@ -1192,11 +1014,6 @@ function GalleryDetails() {
                                                 )}
                                             </span>
 
-                                            {video && (
-                                                <span className="gallery-video-badge">
-                                                    Video
-                                                </span>
-                                            )}
                                         </button>
 
                                         <div className="gallery-media-card-footer">
@@ -1251,17 +1068,7 @@ function GalleryDetails() {
                                                             mediaItem.media_id ? (
                                                             <span className="gallery-download-spinner" />
                                                         ) : (
-                                                            <svg
-                                                                viewBox="0 0 24 24"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                strokeWidth="1.8"
-                                                                aria-hidden="true"
-                                                            >
-                                                                <path d="M12 3v12" />
-                                                                <path d="m7 10 5 5 5-5" />
-                                                                <path d="M5 21h14" />
-                                                            </svg>
+                                                            <BiDownload aria-hidden="true" />
                                                         )}
                                                     </button>
                                                 )}
@@ -1276,21 +1083,7 @@ function GalleryDetails() {
                 {/* Footer information */}
                 <footer className="gallery-details-footer">
                     <div className="gallery-details-footer-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            aria-hidden="true"
-                        >
-                            <path d="M12 3v18" />
-                            <path d="M3 12h18" />
-                            <circle
-                                cx="12"
-                                cy="12"
-                                r="9"
-                            />
-                        </svg>
+                        <BiPlusCircle aria-hidden="true" />
                     </div>
 
                     <div>
@@ -1361,17 +1154,7 @@ function GalleryDetails() {
                                             selectedMedia.media_id ? (
                                             <span className="gallery-download-spinner" />
                                         ) : (
-                                            <svg
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="1.8"
-                                                aria-hidden="true"
-                                            >
-                                                <path d="M12 3v12" />
-                                                <path d="m7 10 5 5 5-5" />
-                                                <path d="M5 21h14" />
-                                            </svg>
+                                            <BiDownload aria-hidden="true" />
                                         )}
                                     </button>
                                 )}
@@ -1385,15 +1168,7 @@ function GalleryDetails() {
                                 title="Close"
                                 aria-label="Close viewer"
                             >
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    aria-hidden="true"
-                                >
-                                    <path d="M6 6l12 12M18 6 6 18" />
-                                </svg>
+                                <BiX aria-hidden="true" />
                             </button>
                         </div>
                     </div>
@@ -1408,15 +1183,7 @@ function GalleryDetails() {
                                 }
                                 aria-label="Previous media"
                             >
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    aria-hidden="true"
-                                >
-                                    <path d="m15 18-6-6 6-6" />
-                                </svg>
+                                <BiChevronLeft aria-hidden="true" />
                             </button>
 
                             <button
@@ -1427,15 +1194,7 @@ function GalleryDetails() {
                                 }
                                 aria-label="Next media"
                             >
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    aria-hidden="true"
-                                >
-                                    <path d="m9 18 6-6-6-6" />
-                                </svg>
+                                <BiChevronRight aria-hidden="true" />
                             </button>
                         </>
                     )}

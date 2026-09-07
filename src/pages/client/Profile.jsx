@@ -1,627 +1,122 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { BiUser, BiSave } from "react-icons/bi";
+import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import "./Profile.css";
 
-export default function ClientProfile() {
-  const navigate = useNavigate();
-  const { client_id } = useParams();
+const toForm = (profile) => ({ first_name: profile.first_name || "", last_name: profile.last_name || "", phone: profile.phone || "" });
 
-  const [client, setClient] = useState(null);
-  const [bookings, setBookings] = useState([]);
-
+export default function Profile() {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [form, setForm] = useState({ first_name: "", last_name: "", phone: "" });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const submitting = useRef(false);
 
   useEffect(() => {
-    if (client_id) {
-      fetchClient();
+    let active = true;
+    async function load() {
+      setLoading(true);
+      setLoadError("");
+      setProfile(null);
+      setError("");
+      setSuccess("");
+      try {
+        if (!user?.id) throw new Error("Sign in required.");
+        const { data, error: queryError } = await supabase.from("profiles")
+          .select("user_id, first_name, last_name, email, phone")
+          .eq("user_id", user.id).single();
+        if (queryError) throw queryError;
+        if (active) { setProfile(data); setForm(toForm(data)); }
+      } catch (err) {
+        console.error("Unable to load profile:", err);
+        if (active) setLoadError("We couldn't load your profile. Please try again.");
+      } finally {
+        if (active) setLoading(false);
+      }
     }
-  }, [client_id]);
+    load();
+    return () => { active = false; };
+  }, [user?.id, retry]);
 
-  async function fetchClient() {
-    setLoading(true);
+  const dirty = profile && Object.keys(form).some((key) => form[key] !== toForm(profile)[key]);
+  function change(event) {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    setSuccess("");
     setError("");
+  }
 
+  async function save(event) {
+    event.preventDefault();
+    if (submitting.current || !dirty || !user?.id) return;
+    setError("");
+    setSuccess("");
+    const values = { first_name: form.first_name.trim(), last_name: form.last_name.trim(), phone: form.phone.trim() || null };
+    if (!values.first_name || !values.last_name) { setError("Please enter both your first and last name."); return; }
+    if (values.first_name.length > 100 || values.last_name.length > 100 || (values.phone?.length || 0) > 30) {
+      setError("Names must be 100 characters or fewer and phone numbers 30 characters or fewer."); return;
+    }
+    submitting.current = true;
+    setSaving(true);
     try {
-      /*
-       * Get authenticated photographer.
-       *
-       * RLS remains the final security boundary.
-       */
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) throw userError;
-
-      if (!user) {
-        throw new Error(
-          "You must be logged in to view this client."
-        );
-      }
-
-      /*
-       * Retrieve the client record.
-       */
-      const { data: clientData, error: clientError } =
-        await supabase
-          .from("clients")
-          .select(`
-            client_id,
-            photographer_id,
-            user_id,
-            notes,
-            created_at
-          `)
-          .eq("client_id", client_id)
-          .single();
-
-      if (clientError) throw clientError;
-
-      if (!clientData) {
-        throw new Error("Client could not be found.");
-      }
-
-      /*
-       * Retrieve the client's profile.
-       */
-      let profile = null;
-
-      if (clientData.user_id) {
-        const { data: profileData, error: profileError } =
-          await supabase
-            .from("profiles")
-            .select(`
-              user_id,
-              first_name,
-              last_name,
-              email,
-              phone,
-              avatar_url
-            `)
-            .eq("user_id", clientData.user_id)
-            .single();
-
-        if (profileError && profileError.code !== "PGRST116") {
-          throw profileError;
-        }
-
-        profile = profileData || null;
-      }
-
-      /*
-       * Retrieve all bookings belonging to this client.
-       *
-       * RLS ensures the photographer can only access
-       * bookings they are authorised to view.
-       */
-      const { data: bookingData, error: bookingsError } =
-        await supabase
-          .from("bookings")
-          .select(`
-            booking_id,
-            client_id,
-            booking_date,
-            status,
-            total_amount,
-            services (
-              name
-            )
-          `)
-          .eq("client_id", client_id)
-          .order("booking_date", {
-            ascending: false,
-          });
-
-      if (bookingsError) throw bookingsError;
-
-      setClient({
-        ...clientData,
-        profile,
-      });
-
-      setBookings(bookingData || []);
+      const { data, error: updateError } = await supabase.from("profiles")
+        .update(values).eq("user_id", user.id)
+        .select("user_id, first_name, last_name, email, phone").single();
+      if (updateError) throw updateError;
+      setProfile(data);
+      setForm(toForm(data));
+      setSuccess("Your profile has been updated.");
     } catch (err) {
-      console.error(
-        "Error loading client profile:",
-        err
-      );
-
-      setError(
-        err.message ||
-          "Unable to load client profile."
-      );
+      console.error("Unable to save profile:", err);
+      setError("We couldn't save your changes. Please try again.");
     } finally {
-      setLoading(false);
+      submitting.current = false;
+      setSaving(false);
     }
   }
-
-  function getClientName() {
-    const profile = client?.profile;
-
-    if (!profile) {
-      return "Unknown Client";
-    }
-
-    return (
-      `${profile.first_name || ""} ${
-        profile.last_name || ""
-      }`.trim() || "Unknown Client"
-    );
-  }
-
-  function getInitials() {
-    const profile = client?.profile;
-
-    if (!profile) {
-      return "?";
-    }
-
-    const first =
-      profile.first_name?.charAt(0) || "";
-
-    const last =
-      profile.last_name?.charAt(0) || "";
-
-    return (
-      `${first}${last}`.toUpperCase() || "?"
-    );
-  }
-
-  function formatDate(dateString) {
-    if (!dateString) {
-      return "—";
-    }
-
-    return new Date(
-      `${dateString}T00:00:00`
-    ).toLocaleDateString("en-NZ", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  }
-
-  function formatCurrency(amount) {
-    return new Intl.NumberFormat("en-NZ", {
-      style: "currency",
-      currency: "NZD",
-    }).format(amount || 0);
-  }
-
-  function getBookingStatus(status) {
-    if (!status) {
-      return "Unknown";
-    }
-
-    return (
-      status.charAt(0).toUpperCase() +
-      status.slice(1)
-    );
-  }
-
-  function isUpcoming(booking) {
-    if (!booking?.booking_date) {
-      return false;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const bookingDate = new Date(
-      `${booking.booking_date}T00:00:00`
-    );
-
-    return bookingDate >= today;
-  }
-
-  const statistics = useMemo(() => {
-    const totalBookings = bookings.length;
-
-    const completedBookings = bookings.filter(
-      (booking) =>
-        booking.status?.toLowerCase() === "completed"
-    ).length;
-
-    const upcomingBookings = bookings.filter(
-      (booking) => isUpcoming(booking)
-    ).length;
-
-    const totalValue = bookings.reduce(
-      (total, booking) =>
-        total + Number(booking.total_amount || 0),
-      0
-    );
-
-    return {
-      totalBookings,
-      completedBookings,
-      upcomingBookings,
-      totalValue,
-    };
-  }, [bookings]);
-
-  if (loading) {
-    return (
-      <div className="client-profile-page">
-        <div className="client-profile-state">
-          <p>Loading client profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="client-profile-page">
-        <div className="client-profile-state error-state">
-          <h2>Unable to load client</h2>
-
-          <p>{error}</p>
-
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() =>
-              navigate("/photographer/clients")
-            }
-          >
-            Back to Clients
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!client) {
-    return null;
-  }
-
-  const profile = client.profile;
 
   return (
-    <div className="client-profile-page">
-
-      {/* =====================================================
-          Back Navigation
-      ===================================================== */}
-
-      <button
-        type="button"
-        className="back-to-clients"
-        onClick={() =>
-          navigate("/photographer/clients")
-        }
-      >
-        <span>←</span>
-        Back to Clients
-      </button>
-
-      {/* =====================================================
-          Client Header
-      ===================================================== */}
-
-      <header className="client-profile-header">
-
-        <div className="client-profile-identity">
-
-          <div className="client-profile-avatar">
-            {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={getClientName()}
-              />
-            ) : (
-              getInitials()
-            )}
-          </div>
-
-          <div className="client-profile-name">
-
-            <p className="page-eyebrow">
-              Client Profile
-            </p>
-
-            <h1>{getClientName()}</h1>
-
-            <div className="client-contact">
-
-              {profile?.email && (
-                <a
-                  href={`mailto:${profile.email}`}
-                >
-                  {profile.email}
-                </a>
-              )}
-
-              {profile?.phone && (
-                <a
-                  href={`tel:${profile.phone}`}
-                >
-                  {profile.phone}
-                </a>
-              )}
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <div className="client-profile-actions">
-
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() =>
-              navigate(
-                `/photographer/clients/${client_id}/edit`
-              )
-            }
-          >
-            Edit Client
-          </button>
-
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() =>
-              navigate(
-                `/photographer/bookings/new?client=${client_id}`
-              )
-            }
-          >
-            New Booking
-          </button>
-
-        </div>
-
+    <div className="client-account-page">
+      <header className="client-account-header">
+        <p className="client-account-eyebrow">Your account</p>
+        <h1>My Profile</h1>
+        <p>Keep your personal details up to date so your photographer can stay in touch.</p>
       </header>
-
-      {/* =====================================================
-          Overview
-      ===================================================== */}
-
-      <section className="client-overview">
-
-        <div className="overview-card">
-
-          <span>Total Bookings</span>
-
-          <strong>
-            {statistics.totalBookings}
-          </strong>
-
-        </div>
-
-        <div className="overview-card">
-
-          <span>Completed</span>
-
-          <strong>
-            {statistics.completedBookings}
-          </strong>
-
-        </div>
-
-        <div className="overview-card">
-
-          <span>Upcoming</span>
-
-          <strong>
-            {statistics.upcomingBookings}
-          </strong>
-
-        </div>
-
-        <div className="overview-card">
-
-          <span>Total Value</span>
-
-          <strong>
-            {formatCurrency(
-              statistics.totalValue
-            )}
-          </strong>
-
-        </div>
-
-      </section>
-
-      {/* =====================================================
-          Client Details
-      ===================================================== */}
-
-      <section className="profile-section">
-
-        <div className="section-heading">
-          <div>
-            <p className="section-eyebrow">
-              Information
-            </p>
-
-            <h2>Client Details</h2>
-          </div>
-        </div>
-
-        <div className="client-details">
-
-          <div className="detail-item">
-            <span>First Name</span>
-            <strong>
-              {profile?.first_name || "—"}
-            </strong>
-          </div>
-
-          <div className="detail-item">
-            <span>Last Name</span>
-            <strong>
-              {profile?.last_name || "—"}
-            </strong>
-          </div>
-
-          <div className="detail-item">
-            <span>Email</span>
-            <strong>
-              {profile?.email || "—"}
-            </strong>
-          </div>
-
-          <div className="detail-item">
-            <span>Phone</span>
-            <strong>
-              {profile?.phone || "—"}
-            </strong>
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* =====================================================
-          Bookings
-      ===================================================== */}
-
-      <section className="profile-section">
-
-        <div className="section-heading">
-
-          <div>
-            <p className="section-eyebrow">
-              History
-            </p>
-
-            <h2>Bookings</h2>
-          </div>
-
-          <span className="section-count">
-            {bookings.length}{" "}
-            {bookings.length === 1
-              ? "Booking"
-              : "Bookings"}
-          </span>
-
-        </div>
-
-        {bookings.length === 0 ? (
-          <div className="profile-empty">
-            <span className="profile-empty-icon">
-              ◇
-            </span>
-
-            <h3>No bookings yet</h3>
-
-            <p>
-              This client does not have any
-              bookings yet.
-            </p>
-
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() =>
-                navigate(
-                  `/photographer/bookings/new?client=${client_id}`
-                )
-              }
-            >
-              Create Booking
-            </button>
-          </div>
-        ) : (
-          <div className="booking-table">
-
-            <div className="booking-table-header">
-              <span>Date</span>
-              <span>Service</span>
-              <span>Status</span>
-              <span>Amount</span>
-            </div>
-
-            {bookings.map((booking) => (
-              <button
-                type="button"
-                className="booking-row"
-                key={booking.booking_id}
-                onClick={() =>
-                  navigate(
-                    `/photographer/bookings/${booking.booking_id}`
-                  )
-                }
-              >
-
-                <span className="booking-date">
-                  {formatDate(
-                    booking.booking_date
-                  )}
-                </span>
-
-                <span className="booking-service">
-                  {booking.services?.name ||
-                    "Photography Session"}
-                </span>
-
-                <span>
-                  <span
-                    className={`booking-status status-${booking.status?.toLowerCase() || "unknown"}`}
-                  >
-                    {getBookingStatus(
-                      booking.status
-                    )}
-                  </span>
-                </span>
-
-                <span className="booking-amount">
-                  {formatCurrency(
-                    booking.total_amount
-                  )}
-                </span>
-
-                <span className="booking-arrow">
-                  →
-                </span>
-
-              </button>
-            ))}
-
+      {loading ? <div className="client-account-state" role="status">Loading your profile…</div> :
+        loadError ? <div className="client-account-state" role="alert"><h2>Unable to load profile</h2><p>{loadError}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Try again</button></div> : profile && (
+          <div className="client-account-layout">
+            <aside className="client-account-card client-account-summary">
+              <div className="client-account-avatar" aria-hidden="true"><BiUser size={36} /></div>
+              <h2>{[profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Your profile"}</h2>
+              <p className="client-account-eyebrow">Client</p>
+              <p>{profile.email}</p>
+              <p>{profile.phone || "No phone number added"}</p>
+              <Link to="/client/bookings">View my bookings →</Link>
+            </aside>
+            <form className="client-account-card" onSubmit={save}>
+              <h2>Personal information</h2>
+              <p>These details are shared with your photographer.</p>
+              <fieldset disabled={saving} className="client-account-fields" aria-label="Personal information">
+                <div><label htmlFor="profile-first-name">First name</label><input id="profile-first-name" name="first_name" autoComplete="given-name" required maxLength={100} value={form.first_name} onChange={change} /></div>
+                <div><label htmlFor="profile-last-name">Last name</label><input id="profile-last-name" name="last_name" autoComplete="family-name" required maxLength={100} value={form.last_name} onChange={change} /></div>
+                <div className="client-account-wide"><label htmlFor="profile-email">Account email</label><input id="profile-email" type="email" value={user?.email || profile.email || ""} readOnly aria-describedby="profile-email-help" /><small id="profile-email-help">Your sign-in email is managed separately from your personal details.</small></div>
+                <div className="client-account-wide"><label htmlFor="profile-phone">Phone number (optional)</label><input id="profile-phone" name="phone" type="tel" autoComplete="tel" maxLength={30} placeholder="e.g. +64 21 123 4567" value={form.phone} onChange={change} /></div>
+              </fieldset>
+              {error && <p className="client-account-message client-account-error" role="alert">{error}</p>}
+              {success && <p className="client-account-message" role="status">{success}</p>}
+              <div className="client-account-actions">
+                <button type="submit" disabled={saving || !dirty}><BiSave size={18} aria-hidden="true" />{saving ? "Saving…" : "Save Changes"}</button>
+                <button type="button" className="client-account-secondary" disabled={saving || !dirty} onClick={() => { setForm(toForm(profile)); setError(""); setSuccess(""); }}>Discard Changes</button>
+              </div>
+            </form>
           </div>
         )}
-
-      </section>
-
-      {/* =====================================================
-          Notes
-      ===================================================== */}
-
-      <section className="profile-section">
-
-        <div className="section-heading">
-          <div>
-            <p className="section-eyebrow">
-              Private
-            </p>
-
-            <h2>Client Notes</h2>
-          </div>
-        </div>
-
-        <div className="client-notes">
-
-          {client.notes ? (
-            <p>{client.notes}</p>
-          ) : (
-            <p className="no-notes">
-              No notes have been added for this
-              client.
-            </p>
-          )}
-
-        </div>
-
-      </section>
-
     </div>
   );
 }

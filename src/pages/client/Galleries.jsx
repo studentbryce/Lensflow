@@ -1,3 +1,4 @@
+import { BiImage, BiCheck, BiInfoCircle, BiImages, BiSearch, BiCalendar, BiDownload } from "react-icons/bi";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
@@ -486,26 +487,7 @@ export default function Galleries() {
       <section className="galleries-summary">
         <div className="gallery-summary-card">
           <div className="gallery-summary-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <rect
-                x="3"
-                y="4"
-                width="18"
-                height="16"
-                rx="2"
-              />
-              <circle
-                cx="8.5"
-                cy="9"
-                r="1.5"
-              />
-              <path d="m21 15-4.5-4.5L8 19" />
-            </svg>
+            <BiImage aria-hidden="true" />
           </div>
 
           <div>
@@ -516,14 +498,7 @@ export default function Galleries() {
 
         <div className="gallery-summary-card">
           <div className="gallery-summary-icon published">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
+            <BiCheck aria-hidden="true" />
           </div>
 
           <div>
@@ -534,20 +509,7 @@ export default function Galleries() {
 
         <div className="gallery-summary-card">
           <div className="gallery-summary-icon unpublished">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-              />
-              <path d="M12 8v4" />
-              <path d="M12 16h.01" />
-            </svg>
+            <BiInfoCircle aria-hidden="true" />
           </div>
 
           <div>
@@ -558,26 +520,7 @@ export default function Galleries() {
 
         <div className="gallery-summary-card">
           <div className="gallery-summary-icon media">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <rect
-                x="3"
-                y="3"
-                width="18"
-                height="18"
-                rx="2"
-              />
-              <circle
-                cx="8.5"
-                cy="8.5"
-                r="1.5"
-              />
-              <path d="m21 15-5-5L5 21" />
-            </svg>
+            <BiImages aria-hidden="true" />
           </div>
 
           <div>
@@ -593,19 +536,7 @@ export default function Galleries() {
 
       <section className="galleries-toolbar">
         <div className="galleries-search">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <circle
-              cx="11"
-              cy="11"
-              r="7"
-            />
-            <path d="m20 20-4-4" />
-          </svg>
+          <BiSearch aria-hidden="true" />
 
           <input
             type="text"
@@ -682,26 +613,7 @@ export default function Galleries() {
         {filteredGalleries.length === 0 ? (
           <div className="galleries-empty">
             <div className="galleries-empty-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-              >
-                <rect
-                  x="3"
-                  y="4"
-                  width="18"
-                  height="16"
-                  rx="2"
-                />
-                <circle
-                  cx="8.5"
-                  cy="9"
-                  r="1.5"
-                />
-                <path d="m21 15-4.5-4.5L8 19" />
-              </svg>
+              <BiImage aria-hidden="true" />
             </div>
 
             <h2>
@@ -763,26 +675,7 @@ export default function Galleries() {
                         />
                       ) : (
                         <div className="gallery-preview-placeholder">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                          >
-                            <rect
-                              x="3"
-                              y="4"
-                              width="18"
-                              height="16"
-                              rx="2"
-                            />
-                            <circle
-                              cx="8.5"
-                              cy="9"
-                              r="1.5"
-                            />
-                            <path d="m21 15-4.5 4.5L8 19" />
-                          </svg>
+                          <BiImage aria-hidden="true" />
 
                           <span>
                             {gallery.mediaCount > 0
@@ -839,21 +732,7 @@ export default function Galleries() {
 
                       <div className="gallery-client">
                         <div className="gallery-client-avatar">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.7"
-                          >
-                            <rect
-                              x="3"
-                              y="4"
-                              width="18"
-                              height="17"
-                              rx="2"
-                            />
-                            <path d="M16 2v4M8 2v4M3 10h18" />
-                          </svg>
+                          <BiCalendar aria-hidden="true" />
                         </div>
 
                         <div>
@@ -873,26 +752,7 @@ export default function Galleries() {
 
                       <div className="gallery-meta">
                         <div className="gallery-meta-item">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.7"
-                          >
-                            <rect
-                              x="3"
-                              y="3"
-                              width="18"
-                              height="18"
-                              rx="2"
-                            />
-                            <circle
-                              cx="8.5"
-                              cy="8.5"
-                              r="1.5"
-                            />
-                            <path d="m21 15-5-5L5 21" />
-                          </svg>
+                          <BiImages aria-hidden="true" />
 
                           <div>
                             <span>Media</span>
@@ -906,16 +766,7 @@ export default function Galleries() {
                         </div>
 
                         <div className="gallery-meta-item">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.7"
-                          >
-                            <path d="M12 3v12" />
-                            <path d="m7 10 5 5 5-5" />
-                            <path d="M5 21h14" />
-                          </svg>
+                          <BiDownload aria-hidden="true" />
 
                           <div>
                             <span>Access</span>
@@ -964,16 +815,7 @@ export default function Galleries() {
                             : "disabled"
                         }`}
                       >
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.7"
-                        >
-                          <path d="M12 3v12" />
-                          <path d="m7 10 5 5 5-5" />
-                          <path d="M5 21h14" />
-                        </svg>
+                        <BiDownload aria-hidden="true" />
 
                         <span>
                           Downloads{" "}

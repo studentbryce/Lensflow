@@ -39,6 +39,8 @@ import PhotographerSettings from "./pages/photographer/Settings";
 
 import ClientDashboard from "./pages/client/Dashboard";
 import ClientBookings from "./pages/client/Bookings";
+import ClientBookingsDetails from "./pages/client/BookingsDetails";
+import ClientNewBooking from "./pages/client/NewBooking";
 import ClientInvoices from "./pages/client/Invoices";
 import ClientGalleries from "./pages/client/Galleries";
 import ClientGalleryDetails from "./pages/client/GalleryDetails";
@@ -234,6 +236,9 @@ export default function App() {
                 path="bookings"
                 element={<ClientBookings />}
               />
+
+              <Route path="bookings/new" element={<ClientNewBooking />} />
+              <Route path="bookings/:booking_id" element={<ClientBookingsDetails />} />
 
               <Route
                 path="invoices"

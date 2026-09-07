@@ -1,5 +1,19 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import {
+  BiCalendar,
+  BiCog,
+  BiCollection,
+  BiGroup,
+  BiHomeAlt,
+  BiImage,
+  BiLogOut,
+  BiMessageRounded,
+  BiReceipt,
+  BiSearchAlt,
+  BiStar,
+  BiBriefcase,
+  BiX as X,
+} from "react-icons/bi";
 import { useAuth } from "./../context/AuthContext";
 import brandLogo from "../assets/images/Lensflow_brand_logo-transparent.png";
 
@@ -43,7 +57,8 @@ function PhotographerSidebar({ isOpen, onClose }) {
       {/* Main Navigation */}
       <nav className="sidebar-nav" onClick={onClose}>
 
-        <NavLink to="/photographer" className={navLinkClass}>
+        <NavLink to="/photographer" end className={navLinkClass}>
+          <BiHomeAlt className="sidebar-link-icon" aria-hidden="true" />
           Dashboard
         </NavLink>
 
@@ -55,6 +70,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/calendar"
             className={navLinkClass}
           >
+            <BiCalendar className="sidebar-link-icon" aria-hidden="true" />
             Calendar
           </NavLink>
 
@@ -62,6 +78,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/bookings"
             className={navLinkClass}
           >
+            <BiBriefcase className="sidebar-link-icon" aria-hidden="true" />
             Bookings
           </NavLink>
 
@@ -69,6 +86,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/clients"
             className={navLinkClass}
           >
+            <BiGroup className="sidebar-link-icon" aria-hidden="true" />
             Clients
           </NavLink>
 
@@ -76,6 +94,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/services"
             className={navLinkClass}
           >
+            <BiBriefcase className="sidebar-link-icon" aria-hidden="true" />
             Services
           </NavLink>
 
@@ -83,6 +102,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/invoices"
             className={navLinkClass}
           >
+            <BiReceipt className="sidebar-link-icon" aria-hidden="true" />
             Invoices
           </NavLink>
         </div>
@@ -95,6 +115,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/galleries"
             className={navLinkClass}
           >
+            <BiCollection className="sidebar-link-icon" aria-hidden="true" />
             Galleries
           </NavLink>
 
@@ -102,6 +123,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/portfolio"
             className={navLinkClass}
           >
+            <BiImage className="sidebar-link-icon" aria-hidden="true" />
             Portfolio
           </NavLink>
         </div>
@@ -114,6 +136,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/website"
             className={navLinkClass}
           >
+            <BiSearchAlt className="sidebar-link-icon" aria-hidden="true" />
             Website Builder
           </NavLink>
         </div>
@@ -126,6 +149,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/messages"
             className={navLinkClass}
           >
+            <BiMessageRounded className="sidebar-link-icon" aria-hidden="true" />
             Messages
           </NavLink>
 
@@ -133,6 +157,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/reviews"
             className={navLinkClass}
           >
+            <BiStar className="sidebar-link-icon" aria-hidden="true" />
             Reviews
           </NavLink>
         </div>
@@ -145,6 +170,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
             to="/photographer/settings"
             className={navLinkClass}
           >
+            <BiCog className="sidebar-link-icon" aria-hidden="true" />
             Settings
           </NavLink>
         </div>
@@ -158,6 +184,7 @@ function PhotographerSidebar({ isOpen, onClose }) {
           className="sidebar-link logout-link"
           onClick={handleLogout}
         >
+          <BiLogOut className="sidebar-link-icon" aria-hidden="true" />
           Logout
         </button>
       </div>

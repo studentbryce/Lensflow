@@ -1,5 +1,14 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import {
+  BiCalendar,
+  BiCollection,
+  BiHomeAlt,
+  BiLogOut,
+  BiMessageRounded,
+  BiReceipt,
+  BiUser,
+  BiX as X,
+} from "react-icons/bi";
 import { useAuth } from "./../context/AuthContext";
 import brandLogo from "../assets/images/Lensflow_brand_logo-transparent.png";
 
@@ -43,7 +52,8 @@ function ClientSidebar({ isOpen, onClose }) {
       {/* Main Navigation */}
       <nav className="sidebar-nav" onClick={onClose}>
 
-        <NavLink to="/client" className={navLinkClass}>
+        <NavLink to="/client" end className={navLinkClass}>
+          <BiHomeAlt className="sidebar-link-icon" aria-hidden="true" />
           Dashboard
         </NavLink>
 
@@ -52,18 +62,22 @@ function ClientSidebar({ isOpen, onClose }) {
           <p className="sidebar-heading">MY PHOTOGRAPHER</p>
 
           <NavLink to="/client/bookings" className={navLinkClass}>
+            <BiCalendar className="sidebar-link-icon" aria-hidden="true" />
             My Bookings
           </NavLink>
 
           <NavLink to="/client/galleries" className={navLinkClass}>
+            <BiCollection className="sidebar-link-icon" aria-hidden="true" />
             My Galleries
           </NavLink>
 
           <NavLink to="/client/invoices" className={navLinkClass}>
+            <BiReceipt className="sidebar-link-icon" aria-hidden="true" />
             My Invoices
           </NavLink>
 
           <NavLink to="/client/messages" className={navLinkClass}>
+            <BiMessageRounded className="sidebar-link-icon" aria-hidden="true" />
             Messages
           </NavLink>
         </div>
@@ -73,6 +87,7 @@ function ClientSidebar({ isOpen, onClose }) {
           <p className="sidebar-heading">ACCOUNT</p>
 
           <NavLink to="/client/profile" className={navLinkClass}>
+            <BiUser className="sidebar-link-icon" aria-hidden="true" />
             My Profile
           </NavLink>
         </div>
@@ -86,6 +101,7 @@ function ClientSidebar({ isOpen, onClose }) {
           className="sidebar-link logout-link"
           onClick={handleLogout}
         >
+          <BiLogOut className="sidebar-link-icon" aria-hidden="true" />
           Logout
         </button>
       </div>
