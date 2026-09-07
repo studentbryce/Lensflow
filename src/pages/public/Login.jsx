@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
@@ -16,7 +16,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const from =
-    location.state?.from?.pathname || "/";
+    location.state?.from?.pathname
+      ? `${location.state.from.pathname}${location.state.from.search || ""}`
+      : "/";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -25,7 +27,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      const { error: signInError } = await signIn(email, password);
+      if (signInError) throw signInError;
 
       navigate(from, {
         replace: true,
@@ -158,6 +161,7 @@ export default function Login() {
           </button>
 
         </form>
+        <p>New to LensFlow? <Link to="/signup" state={location.state}>Create a client account</Link></p>
 
         <button
           type="button"

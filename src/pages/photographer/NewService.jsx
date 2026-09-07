@@ -1,105 +1,259 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    BiImageAdd,
+    BiTrash,
+} from "react-icons/bi";
+
 import { supabase } from "../../lib/supabaseClient";
+
 import "./NewService.css";
+
+const SERVICE_MEDIA_BUCKET = "service-media";
+
+const MAX_IMAGE_SIZE =
+    25 * 1024 * 1024;
+
+const ALLOWED_IMAGE_TYPES = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+};
 
 export default function NewService() {
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-        price: "",
-        duration_minutes: "",
-        deposit_amount: "",
-        image_url: "",
-        is_active: true,
-    });
+    const [formData, setFormData] =
+        useState({
+            name: "",
+            description: "",
+            price: "",
+            duration_minutes: "",
+            deposit_amount: "",
+            is_active: true,
+        });
 
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+    const [imageFile, setImageFile] =
+        useState(null);
+
+    const [imagePreview, setImagePreview] =
+        useState("");
+
+    const [loading, setLoading] =
+        useState(false);
+
+    const [error, setError] =
+        useState("");
+
+    const [success, setSuccess] =
+        useState("");
+
+    const submitLock = useRef(false);
+
+    function clearMessages() {
+        setError("");
+        setSuccess("");
+    }
 
     function handleChange(event) {
-        const { name, value, type, checked } = event.target;
+        const {
+            name,
+            value,
+            type,
+            checked,
+        } = event.target;
 
         setFormData((current) => ({
             ...current,
-            [name]: type === "checkbox" ? checked : value,
+
+            [name]:
+                type === "checkbox"
+                    ? checked
+                    : value,
         }));
 
-        if (error) {
-            setError("");
+        clearMessages();
+    }
+
+    function handleImageChange(event) {
+        const file =
+            event.target.files?.[0];
+
+        event.target.value = "";
+
+        clearMessages();
+
+        if (!file) {
+            return;
         }
 
-        if (success) {
-            setSuccess("");
+        if (
+            !ALLOWED_IMAGE_TYPES[
+                file.type
+            ]
+        ) {
+            setError(
+                "Please choose a JPEG, PNG or WebP image."
+            );
+
+            return;
         }
+
+        if (!file.size) {
+            setError(
+                "The selected image is empty."
+            );
+
+            return;
+        }
+
+        if (
+            file.size >
+            MAX_IMAGE_SIZE
+        ) {
+            setError(
+                "Please choose an image no larger than 25 MB."
+            );
+
+            return;
+        }
+
+        if (imagePreview) {
+            URL.revokeObjectURL(
+                imagePreview
+            );
+        }
+
+        const previewUrl =
+            URL.createObjectURL(file);
+
+        setImageFile(file);
+        setImagePreview(previewUrl);
+    }
+
+    function removeImage() {
+        clearMessages();
+
+        if (imagePreview) {
+            URL.revokeObjectURL(
+                imagePreview
+            );
+        }
+
+        setImageFile(null);
+        setImagePreview("");
     }
 
     async function handleSubmit(event) {
         event.preventDefault();
 
-        setError("");
-        setSuccess("");
+        if (
+            submitLock.current ||
+            loading
+        ) {
+            return;
+        }
 
-        const name = formData.name.trim();
-        const description = formData.description.trim();
-        const imageUrl = formData.image_url.trim();
+        clearMessages();
 
-        const price = Number(formData.price);
-        const duration = Number(formData.duration_minutes);
+        const name =
+            formData.name.trim();
+
+        const description =
+            formData.description.trim();
+
+        const price =
+            Number(formData.price);
+
+        const duration =
+            Number(
+                formData.duration_minutes
+            );
 
         const deposit =
-            formData.deposit_amount.trim() === ""
+            formData.deposit_amount.trim() ===
+            ""
                 ? 0
-                : Number(formData.deposit_amount);
+                : Number(
+                      formData.deposit_amount
+                  );
 
-        // -------------------------
-        // Client-side validation
-        // -------------------------
+        // =================================================
+        // Validation
+        // =================================================
 
         if (!name) {
-            setError("Please enter a service name.");
+            setError(
+                "Please enter a service name."
+            );
+
             return;
         }
 
         if (name.length > 150) {
-            setError("Service name must be 150 characters or less.");
+            setError(
+                "Service name must be 150 characters or less."
+            );
+
             return;
         }
 
-        if (Number.isNaN(price) || price < 0) {
-            setError("Please enter a valid price of $0 or more.");
+        if (
+            Number.isNaN(price) ||
+            price < 0
+        ) {
+            setError(
+                "Please enter a valid price of $0 or more."
+            );
+
             return;
         }
 
-        if (!Number.isInteger(duration) || duration <= 0) {
-            setError("Duration must be a whole number greater than 0.");
+        if (
+            !Number.isInteger(duration) ||
+            duration <= 0
+        ) {
+            setError(
+                "Duration must be a whole number greater than 0."
+            );
+
             return;
         }
 
-        if (Number.isNaN(deposit) || deposit < 0) {
-            setError("Please enter a valid deposit amount of $0 or more.");
+        if (
+            Number.isNaN(deposit) ||
+            deposit < 0
+        ) {
+            setError(
+                "Please enter a valid deposit amount of $0 or more."
+            );
+
             return;
         }
 
         if (deposit > price) {
-            setError("Deposit cannot be greater than the service price.");
+            setError(
+                "Deposit cannot be greater than the service price."
+            );
+
             return;
         }
 
+        submitLock.current = true;
         setLoading(true);
 
+        let uploadedStoragePath = null;
+
         try {
-            // -------------------------
+            // =================================================
             // Get authenticated user
-            // -------------------------
+            // =================================================
 
             const {
                 data: { user },
                 error: userError,
-            } = await supabase.auth.getUser();
+            } =
+                await supabase.auth.getUser();
 
             if (userError) {
                 throw userError;
@@ -111,16 +265,23 @@ export default function NewService() {
                 );
             }
 
-            // -------------------------
-            // Get photographer profile
-            // -------------------------
+            // =================================================
+            // Get photographer
+            // =================================================
 
-            const { data: photographer, error: photographerError } =
-                await supabase
-                    .from("photographer_profiles")
-                    .select("photographer_id")
-                    .eq("user_id", user.id)
-                    .single();
+            const {
+                data: photographer,
+                error:
+                    photographerError,
+            } = await supabase
+                .from(
+                    "photographer_profiles"
+                )
+                .select(
+                    "photographer_id"
+                )
+                .eq("user_id", user.id)
+                .single();
 
             if (photographerError) {
                 throw photographerError;
@@ -132,21 +293,109 @@ export default function NewService() {
                 );
             }
 
-            // -------------------------
-            // Create service
-            // -------------------------
+            const photographerId =
+                photographer.photographer_id;
 
-            const { data, error: insertError } = await supabase
+            // =================================================
+            // Upload service image
+            // =================================================
+
+            let imageUrl = null;
+
+            if (imageFile) {
+                const extension =
+                    ALLOWED_IMAGE_TYPES[
+                        imageFile.type
+                    ];
+
+                const uniqueId =
+                    crypto.randomUUID();
+
+                const storagePath = [
+                    photographerId,
+                    "services",
+                    `${uniqueId}.${extension}`,
+                ].join("/");
+
+                const bucket =
+                    supabase.storage.from(
+                        SERVICE_MEDIA_BUCKET
+                    );
+
+                const {
+                    error: uploadError,
+                } = await bucket.upload(
+                    storagePath,
+                    imageFile,
+                    {
+                        cacheControl:
+                            "3600",
+
+                        contentType:
+                            imageFile.type,
+
+                        upsert: false,
+                    }
+                );
+
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                uploadedStoragePath =
+                    storagePath;
+
+                const {
+                    data:
+                        publicUrlData,
+                } =
+                    bucket.getPublicUrl(
+                        storagePath
+                    );
+
+                imageUrl =
+                    publicUrlData?.publicUrl ||
+                    null;
+
+                if (!imageUrl) {
+                    throw new Error(
+                        "Unable to create the public service image URL."
+                    );
+                }
+            }
+
+            // =================================================
+            // Create service
+            // =================================================
+
+            const {
+                data,
+                error: insertError,
+            } = await supabase
                 .from("services")
                 .insert({
-                    photographer_id: photographer.photographer_id,
+                    photographer_id:
+                        photographerId,
+
                     name,
-                    description: description || null,
+
+                    description:
+                        description ||
+                        null,
+
                     price,
-                    duration_minutes: duration,
-                    deposit_amount: deposit,
-                    image_url: imageUrl || null,
-                    is_active: formData.is_active,
+
+                    duration_minutes:
+                        duration,
+
+                    deposit_amount:
+                        deposit,
+
+                    image_url:
+                        imageUrl,
+
+                    is_active:
+                        formData.is_active,
                 })
                 .select()
                 .single();
@@ -161,50 +410,111 @@ export default function NewService() {
                 );
             }
 
-            setSuccess("Service created successfully.");
+            setSuccess(
+                "Service created successfully."
+            );
 
             setTimeout(() => {
-                navigate("/photographer/services");
+                navigate(
+                    "/photographer/services"
+                );
             }, 700);
         } catch (err) {
-            console.error("Error creating service:", err);
+            console.error(
+                "Error creating service:",
+                err
+            );
+
+            /*
+             * If the image uploaded but
+             * the database insert failed,
+             * clean up the orphaned file.
+             */
+            if (
+                uploadedStoragePath
+            ) {
+                const {
+                    error:
+                        cleanupError,
+                } = await supabase.storage
+                    .from(
+                        SERVICE_MEDIA_BUCKET
+                    )
+                    .remove([
+                        uploadedStoragePath,
+                    ]);
+
+                if (cleanupError) {
+                    console.error(
+                        "Unable to clean up uploaded service image:",
+                        cleanupError
+                    );
+                }
+            }
 
             setError(
-                err.message || "Unable to create the service."
+                err?.message ||
+                    "Unable to create the service."
             );
         } finally {
+            submitLock.current = false;
             setLoading(false);
         }
     }
 
     function handleCancel() {
-        navigate("/photographer/services");
+        if (imagePreview) {
+            URL.revokeObjectURL(
+                imagePreview
+            );
+        }
+
+        navigate(
+            "/photographer/services"
+        );
     }
 
     return (
         <div className="new-service-page">
             <header className="new-service-header">
                 <div>
-                    <p className="page-eyebrow">LensFlow / Services</p>
+                    <p className="page-eyebrow">
+                        LensFlow / Services
+                    </p>
 
-                    <h1>New Service</h1>
+                    <h1>
+                        New Service
+                    </h1>
 
                     <p className="page-description">
-                        Create a photography service that you can offer to your clients.
+                        Create a photography
+                        service that you can
+                        offer to your clients.
                     </p>
                 </div>
             </header>
 
             <form
                 className="new-service-form"
-                onSubmit={handleSubmit}
+                onSubmit={
+                    handleSubmit
+                }
             >
+                {/* =================================================
+                    SERVICE DETAILS
+                    ================================================= */}
+
                 <section className="form-section">
                     <div className="form-section-heading">
-                        <h2>Service Details</h2>
+                        <h2>
+                            Service Details
+                        </h2>
 
                         <p>
-                            Add the basic information about the photography service.
+                            Add the basic
+                            information about
+                            the photography
+                            service.
                         </p>
                     </div>
 
@@ -212,23 +522,37 @@ export default function NewService() {
                         <div className="form-field form-field-full">
                             <label htmlFor="name">
                                 Service Name
-                                <span>*</span>
+                                <span>
+                                    *
+                                </span>
                             </label>
 
                             <input
                                 id="name"
                                 name="name"
                                 type="text"
-                                value={formData.name}
-                                onChange={handleChange}
+                                value={
+                                    formData.name
+                                }
+                                onChange={
+                                    handleChange
+                                }
                                 placeholder="e.g. Wedding Photography"
-                                maxLength={150}
-                                disabled={loading}
+                                maxLength={
+                                    150
+                                }
+                                disabled={
+                                    loading
+                                }
                                 required
                             />
 
                             <small>
-                                Choose a clear name that clients will easily understand.
+                                Choose a clear
+                                name that
+                                clients will
+                                easily
+                                understand.
                             </small>
                         </div>
 
@@ -240,26 +564,46 @@ export default function NewService() {
                             <textarea
                                 id="description"
                                 name="description"
-                                value={formData.description}
-                                onChange={handleChange}
+                                value={
+                                    formData.description
+                                }
+                                onChange={
+                                    handleChange
+                                }
                                 placeholder="Describe what is included with this service..."
                                 rows={5}
-                                disabled={loading}
+                                disabled={
+                                    loading
+                                }
                             />
 
                             <small>
-                                Explain what clients receive as part of this service.
+                                Explain what
+                                clients
+                                receive as
+                                part of this
+                                service.
                             </small>
                         </div>
                     </div>
                 </section>
 
+                {/* =================================================
+                    PRICING
+                    ================================================= */}
+
                 <section className="form-section">
                     <div className="form-section-heading">
-                        <h2>Pricing & Duration</h2>
+                        <h2>
+                            Pricing &
+                            Duration
+                        </h2>
 
                         <p>
-                            Set the price, booking duration and optional deposit.
+                            Set the price,
+                            booking duration
+                            and optional
+                            deposit.
                         </p>
                     </div>
 
@@ -267,11 +611,15 @@ export default function NewService() {
                         <div className="form-field">
                             <label htmlFor="price">
                                 Price (NZD)
-                                <span>*</span>
+                                <span>
+                                    *
+                                </span>
                             </label>
 
                             <div className="input-with-prefix">
-                                <span>$</span>
+                                <span>
+                                    $
+                                </span>
 
                                 <input
                                     id="price"
@@ -279,23 +627,33 @@ export default function NewService() {
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    value={formData.price}
-                                    onChange={handleChange}
+                                    value={
+                                        formData.price
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     placeholder="0.00"
-                                    disabled={loading}
+                                    disabled={
+                                        loading
+                                    }
                                     required
                                 />
                             </div>
 
                             <small>
-                                The full price charged for the service.
+                                The full price
+                                charged for
+                                the service.
                             </small>
                         </div>
 
                         <div className="form-field">
                             <label htmlFor="duration_minutes">
                                 Duration
-                                <span>*</span>
+                                <span>
+                                    *
+                                </span>
                             </label>
 
                             <div className="input-with-suffix">
@@ -305,18 +663,28 @@ export default function NewService() {
                                     type="number"
                                     min="1"
                                     step="1"
-                                    value={formData.duration_minutes}
-                                    onChange={handleChange}
+                                    value={
+                                        formData.duration_minutes
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     placeholder="60"
-                                    disabled={loading}
+                                    disabled={
+                                        loading
+                                    }
                                     required
                                 />
 
-                                <span>min</span>
+                                <span>
+                                    min
+                                </span>
                             </div>
 
                             <small>
-                                How long the photography session takes.
+                                How long the
+                                photography
+                                session takes.
                             </small>
                         </div>
 
@@ -326,7 +694,9 @@ export default function NewService() {
                             </label>
 
                             <div className="input-with-prefix">
-                                <span>$</span>
+                                <span>
+                                    $
+                                </span>
 
                                 <input
                                     id="deposit_amount"
@@ -334,59 +704,156 @@ export default function NewService() {
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    value={formData.deposit_amount}
-                                    onChange={handleChange}
+                                    value={
+                                        formData.deposit_amount
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     placeholder="0.00"
-                                    disabled={loading}
+                                    disabled={
+                                        loading
+                                    }
                                 />
                             </div>
 
                             <small>
-                                Optional deposit required to secure a booking.
+                                Optional
+                                deposit
+                                required to
+                                secure a
+                                booking.
                             </small>
                         </div>
                     </div>
                 </section>
+
+                {/* =================================================
+                    SERVICE IMAGE
+                    ================================================= */}
 
                 <section className="form-section">
                     <div className="form-section-heading">
-                        <h2>Service Image</h2>
+                        <h2>
+                            Service Image
+                        </h2>
 
                         <p>
-                            Add an image to visually represent this service.
+                            Add a photograph
+                            that visually
+                            represents this
+                            service.
                         </p>
                     </div>
 
-                    <div className="form-grid">
-                        <div className="form-field form-field-full">
-                            <label htmlFor="image_url">
-                                Image URL
+                    <div className="service-image-field">
+                        {imagePreview ? (
+                            <div className="service-image-preview-wrap">
+                                <img
+                                    className="service-image-preview"
+                                    src={
+                                        imagePreview
+                                    }
+                                    alt="Service preview"
+                                />
+
+                                <div className="service-image-overlay">
+                                    <button
+                                        type="button"
+                                        className="service-image-remove"
+                                        onClick={
+                                            removeImage
+                                        }
+                                        disabled={
+                                            loading
+                                        }
+                                    >
+                                        <BiTrash
+                                            aria-hidden="true"
+                                        />
+
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="service-image-empty">
+                                <BiImageAdd
+                                    aria-hidden="true"
+                                />
+
+                                <strong>
+                                    Add a service
+                                    image
+                                </strong>
+
+                                <span>
+                                    Choose an image
+                                    that represents
+                                    this photography
+                                    service.
+                                </span>
+                            </div>
+                        )}
+
+                        <div className="service-image-controls">
+                            <label
+                                htmlFor="service-image-upload"
+                                className={
+                                    loading
+                                        ? "service-upload-button service-upload-button--disabled"
+                                        : "service-upload-button"
+                                }
+                            >
+                                <BiImageAdd
+                                    aria-hidden="true"
+                                />
+
+                                {imagePreview
+                                    ? "Replace image"
+                                    : "Choose image"}
                             </label>
 
                             <input
-                                id="image_url"
-                                name="image_url"
-                                type="url"
-                                value={formData.image_url}
-                                onChange={handleChange}
-                                placeholder="https://example.com/your-service-image.jpg"
-                                disabled={loading}
+                                id="service-image-upload"
+                                className="service-file-input"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={
+                                    handleImageChange
+                                }
+                                disabled={
+                                    loading
+                                }
                             />
-
-                            <small>
-                                You can add a Supabase Storage image URL or another
-                                publicly accessible image URL.
-                            </small>
                         </div>
+
+                        <small className="service-image-help">
+                            JPEG, PNG or WebP.
+                            Maximum 25 MB. A
+                            landscape image is
+                            recommended for the
+                            best appearance on
+                            your public website.
+                        </small>
                     </div>
                 </section>
 
+                {/* =================================================
+                    STATUS
+                    ================================================= */}
+
                 <section className="form-section service-status-section">
                     <div className="form-section-heading">
-                        <h2>Service Status</h2>
+                        <h2>
+                            Service Status
+                        </h2>
 
                         <p>
-                            Control whether clients can currently book this service.
+                            Control whether
+                            clients can
+                            currently book this
+                            service.
                         </p>
                     </div>
 
@@ -394,12 +861,18 @@ export default function NewService() {
                         <input
                             type="checkbox"
                             name="is_active"
-                            checked={formData.is_active}
-                            onChange={handleChange}
-                            disabled={loading}
+                            checked={
+                                formData.is_active
+                            }
+                            onChange={
+                                handleChange
+                            }
+                            disabled={
+                                loading
+                            }
                         />
 
-                        <span className="toggle-slider"></span>
+                        <span className="toggle-slider" />
 
                         <span className="toggle-content">
                             <strong>
@@ -417,26 +890,49 @@ export default function NewService() {
                     </label>
                 </section>
 
+                {/* =================================================
+                    MESSAGES
+                    ================================================= */}
+
                 {error && (
                     <div className="form-message error-message">
-                        <strong>Unable to create service</strong>
-                        <p>{error}</p>
+                        <strong>
+                            Unable to create
+                            service
+                        </strong>
+
+                        <p>
+                            {error}
+                        </p>
                     </div>
                 )}
 
                 {success && (
                     <div className="form-message success-message">
-                        <strong>Service created</strong>
-                        <p>{success}</p>
+                        <strong>
+                            Service created
+                        </strong>
+
+                        <p>
+                            {success}
+                        </p>
                     </div>
                 )}
+
+                {/* =================================================
+                    ACTIONS
+                    ================================================= */}
 
                 <div className="form-actions">
                     <button
                         type="button"
                         className="secondary-button"
-                        onClick={handleCancel}
-                        disabled={loading}
+                        onClick={
+                            handleCancel
+                        }
+                        disabled={
+                            loading
+                        }
                     >
                         Cancel
                     </button>
@@ -444,13 +940,18 @@ export default function NewService() {
                     <button
                         type="submit"
                         className="primary-button"
-                        disabled={loading}
+                        disabled={
+                            loading
+                        }
                     >
                         {loading ? (
                             "Creating..."
                         ) : (
                             <>
-                                <span>+</span>
+                                <span>
+                                    +
+                                </span>
+
                                 Create Service
                             </>
                         )}

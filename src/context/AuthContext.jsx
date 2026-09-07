@@ -6,6 +6,7 @@ import {
 } from 'react';
 
 import { supabase } from '../lib/supabaseClient';
+import { completeClientSignup } from '../lib/completeClientSignup';
 
 const AuthContext = createContext();
 
@@ -16,6 +17,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   async function loadProfile(userId) {
+    try {
+      await completeClientSignup(userId);
+    } catch (error) {
+      console.error('Client account setup failed:', error);
+    }
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -56,17 +62,22 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          await loadProfile(session.user.id);
+          setLoading(true);
+          // Supabase auth calls must run outside the auth-event callback.
+          setTimeout(async () => {
+            if (!mounted) return;
+            await loadProfile(session.user.id);
+            if (mounted) setLoading(false);
+          }, 0);
         } else {
           setProfile(null);
+          setLoading(false);
         }
-
-        setLoading(false);
       }
     );
 

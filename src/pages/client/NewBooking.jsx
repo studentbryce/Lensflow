@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { getClient, calculateEndTime, formatCurrency, formatDate, formatTime, localToday } from "./bookingHelpers";
@@ -8,6 +8,9 @@ import "./Bookings.css";
 export default function NewBooking() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedPhotographer = searchParams.get("photographer");
+  const requestedService = searchParams.get("service");
   const submitting = useRef(false);
   const [client, setClient] = useState(null);
   const [services, setServices] = useState([]);
@@ -33,11 +36,18 @@ export default function NewBooking() {
       try {
         const profile = await getClient(user?.id);
         if (!profile.photographer_id) throw new Error("No photographer assigned.");
+        if (requestedPhotographer && profile.photographer_id !== requestedPhotographer) {
+          if (active) setLoadError("Your account is not linked to this photographer. Please contact them to arrange client access before booking.");
+          return;
+        }
         const { data, error: queryError } = await supabase.from("services")
           .select("service_id, name, description, price, duration_minutes")
           .eq("photographer_id", profile.photographer_id).eq("is_active", true).order("name");
         if (queryError) throw queryError;
-        if (active) { setClient(profile); setServices(data || []); }
+        if (active) {
+          setClient(profile); setServices(data || []);
+          if ((data || []).some((item) => String(item.service_id) === requestedService)) setServiceId(requestedService);
+        }
       } catch (err) {
         console.error("Unable to load booking services:", err);
         if (active) setLoadError("We couldn't load your photographer's services. Please try again or contact your photographer.");
@@ -47,7 +57,7 @@ export default function NewBooking() {
     }
     load();
     return () => { active = false; };
-  }, [user?.id, retry]);
+  }, [user?.id, retry, requestedPhotographer, requestedService]);
 
   const service = services.find((item) => String(item.service_id) === serviceId);
   const end = calculateEndTime(start, service?.duration_minutes);

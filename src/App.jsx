@@ -8,6 +8,7 @@ import './App.css';
 
 import Home from "./pages/public/Home";
 import Login from "./pages/public/Login";
+import SignUp from "./pages/public/SignUp";
 import PhotographerWebsite from "./pages/public/PhotographerWebsite";
 
 import AppLayout from "./layouts/AppLayout";
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
 
         <Route
           path="/:photographerSlug"
