@@ -112,8 +112,8 @@
   align-items: center;
   justify-content: center;
 
-  width: 120px;
-  height: 60px;
+  width: fit-content;
+  height: fit-content;
 
   border-radius: 10px;
   background: var(--accent-bg);

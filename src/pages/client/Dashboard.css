@@ -177,9 +177,9 @@
 
     justify-content: center;
 
-    width: 120px;
+    width: fit-content;
 
-    height: 60px;
+    height: fit-content;
 
     border-radius: 10px;
 

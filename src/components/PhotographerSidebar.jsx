@@ -1,7 +1,9 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import { useAuth } from "./../context/AuthContext";
+import brandLogo from "../assets/images/Lensflow_brand_logo-transparent.png";
 
-function PhotographerSidebar() {
+function PhotographerSidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -21,16 +23,25 @@ function PhotographerSidebar() {
   };
 
   return (
-    <aside className="sidebar photographer-sidebar">
+    <aside className={`sidebar photographer-sidebar ${isOpen ? "is-open" : ""}`}>
+
+      <button
+        type="button"
+        className="sidebar-close"
+        aria-label="Close navigation menu"
+        onClick={onClose}
+      >
+        <X size={22} aria-hidden="true" />
+      </button>
 
       {/* Logo / Brand */}
       <div className="sidebar-brand">
-        <h2>LensFlow</h2>
+        <img src={brandLogo} alt="LensFlow" />
         <span>Photographer</span>
       </div>
 
       {/* Main Navigation */}
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" onClick={onClose}>
 
         <NavLink to="/photographer" className={navLinkClass}>
           Dashboard
