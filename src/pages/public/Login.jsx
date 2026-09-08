@@ -104,6 +104,7 @@ export default function Login() {
 
             <input
               id="email"
+              name="email"
               type="email"
               value={email}
               onChange={(event) =>
@@ -126,6 +127,7 @@ export default function Login() {
 
             <input
               id="password"
+              name="password"
               type="password"
               value={password}
               onChange={(event) =>

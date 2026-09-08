@@ -35,6 +35,7 @@ import PhotographerGalleryDetails from "./pages/photographer/GalleryDetails";
 import PhotographerPortfolio from "./pages/photographer/Portfolio";
 import PhotographerNewPortfolioItem from "./pages/photographer/NewPortfolioItem";
 import PhotographerWebsiteBuilder from "./pages/photographer/WebsiteBuilder";
+import PhotographerMessages from "./pages/photographer/Messages";
 import PhotographerSettings from "./pages/photographer/Settings";
 
 
@@ -202,6 +203,11 @@ export default function App() {
               <Route
                 path="website"
                 element={<PhotographerWebsiteBuilder />}
+              />
+
+              <Route
+                path="messages"
+                element={<PhotographerMessages />}
               />
 
               <Route

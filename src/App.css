@@ -411,6 +411,80 @@
   font-weight: 600;
 }
 
+/* ============================================================
+   HEADER NOTIFICATIONS
+   ============================================================ */
+
+.top-header-notification {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  color: var(--color-heading);
+
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+
+  text-decoration: none;
+
+  transition:
+    color var(--transition-standard),
+    background-color var(--transition-standard),
+    border-color var(--transition-standard);
+}
+
+
+.top-header-notification:hover,
+.top-header-notification:focus-visible {
+  color: var(--color-accent-dark);
+
+  background: var(--color-accent-light);
+
+  border-color: var(--color-accent);
+}
+
+
+.top-header-notification-badge {
+  position: absolute;
+
+  top: -5px;
+  right: -6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 5px;
+
+  border: 2px solid var(--color-surface);
+  border-radius: 999px;
+
+  background: var(--accent);
+
+  color: #ffffff;
+
+  font-family: var(--font-navigation);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  line-height: 1;
+}
+
+
+/* Slightly wider badge for 2+ digits */
+.top-header-notification-badge:not(:empty) {
+  box-sizing: border-box;
+}
+
 
 /* ============================================================
    DASHBOARD STATS
