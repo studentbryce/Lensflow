@@ -6,6 +6,7 @@ import {
   BiLogOut,
   BiMessageRounded,
   BiReceipt,
+  BiStar,
   BiUser,
   BiX as X,
 } from "react-icons/bi";
@@ -33,7 +34,6 @@ function ClientSidebar({ isOpen, onClose }) {
 
   return (
     <aside className={`sidebar client-sidebar ${isOpen ? "is-open" : ""}`}>
-
       <button
         type="button"
         className="sidebar-close"
@@ -51,7 +51,6 @@ function ClientSidebar({ isOpen, onClose }) {
 
       {/* Main Navigation */}
       <nav className="sidebar-nav" onClick={onClose}>
-
         <NavLink to="/client" end className={navLinkClass}>
           <BiHomeAlt className="sidebar-link-icon" aria-hidden="true" />
           Dashboard
@@ -71,13 +70,21 @@ function ClientSidebar({ isOpen, onClose }) {
             My Galleries
           </NavLink>
 
+          <NavLink to="/client/reviews" className={navLinkClass}>
+            <BiStar className="sidebar-link-icon" aria-hidden="true" />
+            My Reviews
+          </NavLink>
+
           <NavLink to="/client/invoices" className={navLinkClass}>
             <BiReceipt className="sidebar-link-icon" aria-hidden="true" />
             My Invoices
           </NavLink>
 
           <NavLink to="/client/messages" className={navLinkClass}>
-            <BiMessageRounded className="sidebar-link-icon" aria-hidden="true" />
+            <BiMessageRounded
+              className="sidebar-link-icon"
+              aria-hidden="true"
+            />
             Messages
           </NavLink>
         </div>
@@ -91,7 +98,6 @@ function ClientSidebar({ isOpen, onClose }) {
             My Profile
           </NavLink>
         </div>
-
       </nav>
 
       {/* Footer */}
@@ -105,7 +111,6 @@ function ClientSidebar({ isOpen, onClose }) {
           Logout
         </button>
       </div>
-
     </aside>
   );
 }

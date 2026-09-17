@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   BiImageAdd,
+  BiCheckCircle,
   BiLinkExternal,
   BiSave,
+  BiStar,
   BiTrash,
 } from "react-icons/bi";
 
@@ -47,6 +49,9 @@ export default function WebsiteBuilder() {
   const [slug, setSlug] = useState("");
   const [published, setPublished] = useState(false);
 
+  const [approvedReviews, setApprovedReviews] = useState([]);
+  const [featuredReviewIds, setFeaturedReviewIds] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -87,25 +92,36 @@ export default function WebsiteBuilder() {
           throw ownerError;
         }
 
-        const [config, content] = await Promise.all([
-          supabase
-            .from("website_settings")
-            .select("*")
-            .eq("photographer_id", owner.photographer_id)
-            .maybeSingle(),
+        const [config, content, publicReviews, featuredReviews] =
+          await Promise.all([
+            supabase
+              .from("website_settings")
+              .select("*")
+              .eq("photographer_id", owner.photographer_id)
+              .maybeSingle(),
 
-          supabase
-            .from("website_content")
-            .select(
-              "content_id, title, content, image_url"
-            )
-            .eq("photographer_id", owner.photographer_id)
-            .eq("section", "about")
-            .order("display_order", { ascending: true })
-            .order("created_at", { ascending: true })
-            .limit(1)
-            .maybeSingle(),
-        ]);
+            supabase
+              .from("website_content")
+              .select(
+                "content_id, title, content, image_url"
+              )
+              .eq("photographer_id", owner.photographer_id)
+              .eq("section", "about")
+              .order("display_order", { ascending: true })
+              .order("created_at", { ascending: true })
+              .limit(1)
+              .maybeSingle(),
+
+            supabase.rpc("get_public_reviews", {
+              p_photographer_id: owner.photographer_id,
+            }),
+
+            supabase
+              .from("website_featured_reviews")
+              .select("review_id, display_order")
+              .eq("photographer_id", owner.photographer_id)
+              .order("display_order", { ascending: true }),
+          ]);
 
         if (config.error) {
           throw config.error;
@@ -113,6 +129,14 @@ export default function WebsiteBuilder() {
 
         if (content.error) {
           throw content.error;
+        }
+
+        if (publicReviews.error) {
+          throw publicReviews.error;
+        }
+
+        if (featuredReviews.error) {
+          throw featuredReviews.error;
         }
 
         if (!active) {
@@ -141,6 +165,11 @@ export default function WebsiteBuilder() {
           content: content.data?.content || "",
           image_url: content.data?.image_url || "",
         });
+
+        setApprovedReviews(publicReviews.data || []);
+        setFeaturedReviewIds(
+          (featuredReviews.data || []).map((item) => item.review_id)
+        );
       } catch (loadWebsiteError) {
         console.error(
           "Website builder load error:",
@@ -318,6 +347,25 @@ export default function WebsiteBuilder() {
     );
   }
 
+  function toggleFeaturedReview(reviewId) {
+    clearStatus();
+
+    setFeaturedReviewIds((current) => {
+      if (current.includes(reviewId)) {
+        return current.filter((id) => id !== reviewId);
+      }
+
+      if (current.length >= 3) {
+        setError(
+          "You can feature up to 3 reviews on your website."
+        );
+        return current;
+      }
+
+      return [...current, reviewId];
+    });
+  }
+
   async function save(event) {
     event.preventDefault();
 
@@ -404,6 +452,33 @@ export default function WebsiteBuilder() {
 
       if (settingsError) {
         throw settingsError;
+      }
+
+      const { error: clearFeaturedError } = await supabase
+        .from("website_featured_reviews")
+        .delete()
+        .eq("photographer_id", photographerId);
+
+      if (clearFeaturedError) {
+        throw clearFeaturedError;
+      }
+
+      if (featuredReviewIds.length > 0) {
+        const featuredRows = featuredReviewIds.map(
+          (reviewId, index) => ({
+            photographer_id: photographerId,
+            review_id: reviewId,
+            display_order: index + 1,
+          })
+        );
+
+        const { error: featuredInsertError } = await supabase
+          .from("website_featured_reviews")
+          .insert(featuredRows);
+
+        if (featuredInsertError) {
+          throw featuredInsertError;
+        }
       }
 
       const aboutValues = {
@@ -1315,16 +1390,138 @@ export default function WebsiteBuilder() {
 
             <div className="wb-portfolio-note">
               <p>
-                Published items from
-                your{" "}
+                Published items from your{" "}
                 <Link to="/photographer/portfolio">
                   portfolio
                 </Link>{" "}
-                and approved client
-                reviews appear
-                automatically.
+                appear automatically. Choose up to three approved
+                client reviews below to feature on your website.
               </p>
             </div>
+          </section>
+
+          <section className="wb-card wb-reviews-card">
+            <div className="wb-card-heading wb-review-heading">
+              <div>
+                <p className="wb-card-eyebrow">
+                  Client reviews
+                </p>
+
+                <h2>
+                  Featured reviews
+                </h2>
+
+                <p className="wb-review-intro">
+                  Choose up to three approved reviews to feature on
+                  your website homepage.
+                </p>
+              </div>
+
+              <span className="wb-review-count">
+                {featuredReviewIds.length} of 3 selected
+              </span>
+            </div>
+
+            {!settings.show_reviews && (
+              <div className="wb-review-section-warning">
+                The Reviews website section is currently turned off.
+                You can still choose featured reviews now, but they
+                will not appear until Reviews is enabled above.
+              </div>
+            )}
+
+            {approvedReviews.length === 0 ? (
+              <div className="wb-review-empty">
+                <BiStar aria-hidden="true" />
+                <strong>No approved reviews yet</strong>
+                <span>
+                  Approved client reviews will appear here and can
+                  then be selected for your website.
+                </span>
+              </div>
+            ) : (
+              <div className="wb-review-options">
+                {approvedReviews.map((review) => {
+                  const selected = featuredReviewIds.includes(
+                    review.review_id
+                  );
+                  const selectionNumber =
+                    featuredReviewIds.indexOf(review.review_id) + 1;
+                  const selectionLimitReached =
+                    featuredReviewIds.length >= 3 && !selected;
+
+                  return (
+                    <button
+                      key={review.review_id}
+                      type="button"
+                      className={`wb-review-option ${
+                        selected ? "is-selected" : ""
+                      }`}
+                      aria-pressed={selected}
+                      disabled={selectionLimitReached}
+                      onClick={() =>
+                        toggleFeaturedReview(review.review_id)
+                      }
+                    >
+                      <div className="wb-review-option-top">
+                        <div
+                          className="wb-review-stars"
+                          aria-label={`${review.rating} out of 5 stars`}
+                        >
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <BiStar
+                              key={star}
+                              className={
+                                star <= Number(review.rating)
+                                  ? "is-filled"
+                                  : ""
+                              }
+                              aria-hidden="true"
+                            />
+                          ))}
+                        </div>
+
+                        <span className="wb-review-selection">
+                          {selected ? (
+                            <>
+                              <BiCheckCircle aria-hidden="true" />
+                              Featured {selectionNumber}
+                            </>
+                          ) : selectionLimitReached ? (
+                            "3 selected"
+                          ) : (
+                            "Select"
+                          )}
+                        </span>
+                      </div>
+
+                      {review.comment ? (
+                        <p className="wb-review-comment">
+                          “{review.comment}”
+                        </p>
+                      ) : (
+                        <p className="wb-review-comment wb-review-comment--empty">
+                          Rating submitted without a written comment.
+                        </p>
+                      )}
+
+                      <div className="wb-review-meta">
+                        <strong>{review.display_name}</strong>
+                        <span>Approved review</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {approvedReviews.length > 0 && (
+              <p className="wb-review-help">
+                The selection order becomes the display order on your
+                homepage. Deselect a review and select it again to move
+                it to the end. Select Save Website to apply changes.
+              </p>
+            )}
           </section>
         </fieldset>
 

@@ -917,6 +917,37 @@
     text-transform: uppercase;
 }
 
+
+.public-reviews-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 34px;
+}
+
+.public-reviews-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 0 7px;
+    border: 0;
+    border-bottom: 1px solid var(--site-text);
+    background: transparent;
+    color: var(--site-text);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.public-reviews-toggle span {
+    transition: transform 0.2s ease;
+}
+
+.public-reviews-toggle:hover span {
+    transform: translateX(4px);
+}
+
 /* =========================================================
    Contact
    ========================================================= */

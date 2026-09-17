@@ -25,6 +25,7 @@ export default function PhotographerWebsite() {
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -125,21 +126,13 @@ export default function PhotographerWebsite() {
               ascending: true,
             }),
 
-          supabase
-            .from("reviews")
-            .select(`
-              review_id,
-              rating,
-              comment
-            `)
-            .eq(
-              "photographer_id",
-              photographerId
-            )
-            .eq("status", "approved")
-            .order("created_at", {
-              ascending: false,
-            }),
+          supabase.rpc("get_featured_reviews", {
+            p_photographer_id: photographerId,
+          }),
+
+          supabase.rpc("get_public_reviews", {
+            p_photographer_id: photographerId,
+          }),
 
           supabase
             .from("services")
@@ -188,8 +181,11 @@ export default function PhotographerWebsite() {
           reviews:
             results[3].data || [],
 
-          services:
+          allReviews:
             results[4].data || [],
+
+          services:
+            results[5].data || [],
         });
       } catch (loadError) {
         console.error(
@@ -218,6 +214,7 @@ export default function PhotographerWebsite() {
 
   useEffect(() => {
     setMenuOpen(false);
+    setShowAllReviews(false);
   }, [photographerSlug]);
 
   const currencyFormatter = useMemo(
@@ -293,6 +290,7 @@ export default function PhotographerWebsite() {
     about,
     portfolio,
     reviews,
+    allReviews,
     services,
   } = site;
 
@@ -839,8 +837,9 @@ export default function PhotographerWebsite() {
           </div>
 
           {reviews.length ? (
-            <div className="public-reviews-grid">
-              {reviews.map(
+            <>
+              <div className="public-reviews-grid">
+              {(showAllReviews ? allReviews : reviews).map(
                 (review) => (
                   <blockquote
                     className="public-review-card"
@@ -874,12 +873,26 @@ export default function PhotographerWebsite() {
                     </p>
 
                     <cite>
-                      Photography client
+                      {review.display_name || "Photography client"}
                     </cite>
                   </blockquote>
                 )
               )}
-            </div>
+              </div>
+
+              {allReviews.length > reviews.length && (
+                <div className="public-reviews-actions">
+                  <button
+                    type="button"
+                    className="public-reviews-toggle"
+                    onClick={() => setShowAllReviews((current) => !current)}
+                  >
+                    {showAllReviews ? "Show featured reviews" : "Read all reviews"}
+                    <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="public-site-empty">
               <p>

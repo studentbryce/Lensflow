@@ -37,6 +37,7 @@ import PhotographerNewPortfolioItem from "./pages/photographer/NewPortfolioItem"
 import PhotographerWebsiteBuilder from "./pages/photographer/WebsiteBuilder";
 import PhotographerMessages from "./pages/photographer/Messages";
 import PhotographerSettings from "./pages/photographer/Settings";
+import PhotographerReviews from "./pages/photographer/Reviews";
 
 
 import ClientDashboard from "./pages/client/Dashboard";
@@ -213,6 +214,11 @@ export default function App() {
               <Route
                 path="settings"
                 element={<PhotographerSettings />}
+              />
+
+              <Route
+                path="reviews"
+                element={<PhotographerReviews />}
               />
 
             </Route>

@@ -1,0 +1,651 @@
+/* ============================================================
+   PHOTOGRAPHER REVIEWS
+============================================================ */
+
+.photographer-reviews-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 0 60px;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.photographer-reviews-header {
+  margin-bottom: 30px;
+}
+
+.photographer-reviews-eyebrow {
+  margin: 0 0 7px;
+  color: var(--color-accent);
+  font: 700 11px var(--font-navigation);
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.photographer-reviews-header h1 {
+  margin: 0 0 10px;
+  font-size: clamp(32px, 3vw, 42px);
+}
+
+.photographer-reviews-header > p:last-child {
+  max-width: 680px;
+  margin: 0;
+  color: var(--color-text);
+  font: 14px/1.65 var(--font-navigation);
+}
+
+/* ============================================================
+   MESSAGES
+============================================================ */
+
+.photographer-reviews-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 13px 15px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  font: 600 12px/1.5 var(--font-navigation);
+}
+
+.photographer-reviews-message.success {
+  border-color: rgba(63, 123, 89, 0.22);
+  background: rgba(63, 123, 89, 0.07);
+  color: #3f7b59;
+}
+
+.photographer-reviews-message.error {
+  border-color: rgba(145, 78, 71, 0.22);
+  background: rgba(145, 78, 71, 0.06);
+  color: #914e47;
+}
+
+.photographer-reviews-message > svg {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.photographer-reviews-message > span {
+  flex: 1;
+}
+
+.photographer-reviews-message button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.photographer-reviews-message button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================================
+   SUMMARY
+============================================================ */
+
+.photographer-reviews-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 34px;
+}
+
+.photographer-review-stat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 105px;
+  padding: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-small);
+  box-sizing: border-box;
+}
+
+.photographer-review-stat > svg {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  color: var(--color-accent);
+}
+
+.photographer-review-stat div {
+  min-width: 0;
+}
+
+.photographer-review-stat span {
+  display: block;
+  color: var(--color-text);
+  font: 12px var(--font-navigation);
+}
+
+.photographer-review-stat strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--color-heading);
+  font: 500 28px var(--font-heading);
+}
+
+/* ============================================================
+   SECTION
+============================================================ */
+
+.photographer-reviews-section {
+  margin-bottom: 40px;
+}
+
+.photographer-reviews-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.photographer-reviews-section-heading h2 {
+  margin: 0 0 5px;
+  font-size: 24px;
+}
+
+.photographer-reviews-section-heading p {
+  margin: 0;
+  color: var(--color-text);
+  font: 12px/1.6 var(--font-navigation);
+}
+
+/* ============================================================
+   FILTERS
+============================================================ */
+
+.photographer-review-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.photographer-review-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 20px;
+  background: transparent;
+  color: var(--color-text);
+  font: 600 11px var(--font-navigation);
+  cursor: pointer;
+}
+
+.photographer-review-filters button:hover {
+  background: var(--color-accent-light);
+}
+
+.photographer-review-filters button[aria-pressed="true"] {
+  background: var(--color-accent-dark);
+  color: #ffffff;
+}
+
+.photographer-review-filters button span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 9px;
+}
+
+.photographer-review-filters button[aria-pressed="true"] span {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ============================================================
+   REVIEW LIST
+============================================================ */
+
+.photographer-review-list {
+  display: grid;
+  gap: 14px;
+}
+
+.photographer-review-card {
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-small);
+}
+
+.photographer-review-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.photographer-review-card-top h3 {
+  margin: 8px 0 0;
+  font-size: 22px;
+}
+
+/* ============================================================
+   STARS
+============================================================ */
+
+.photographer-review-stars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.photographer-review-stars svg {
+  width: 21px;
+  height: 21px;
+  color: var(--color-border);
+  fill: transparent;
+}
+
+.photographer-review-stars svg.filled {
+  color: #b8892f;
+  fill: #b8892f;
+}
+
+.photographer-review-stars > span {
+  margin-left: 6px;
+  color: var(--color-heading);
+  font: 700 11px var(--font-navigation);
+}
+
+/* ============================================================
+   STATUS
+============================================================ */
+
+.photographer-review-status {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: #f8f0e1;
+  color: #83612e;
+  font: 700 9px var(--font-navigation);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.photographer-review-status[data-status="approved"] {
+  background: #edf3ee;
+  color: #44644a;
+}
+
+.photographer-review-status[data-status="rejected"] {
+  background: #f7eae8;
+  color: #914e47;
+}
+
+/* ============================================================
+   BOOKING DETAILS
+============================================================ */
+
+.photographer-review-booking {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 9px;
+  background: var(--accent-bg);
+}
+
+.photographer-review-booking > div {
+  min-width: 0;
+}
+
+.photographer-review-booking span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text);
+  font: 700 9px var(--font-navigation);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.photographer-review-booking strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--color-heading);
+  font: 600 12px/1.5 var(--font-navigation);
+}
+
+/* ============================================================
+   COMMENT
+============================================================ */
+
+.photographer-review-comment {
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+  color: var(--color-heading);
+  font: 15px/1.75 var(--font-navigation);
+  font-style: italic;
+  white-space: pre-wrap;
+}
+
+.photographer-review-no-comment {
+  margin: 0 0 20px;
+  color: var(--color-text);
+  font: 12px/1.6 var(--font-navigation);
+  font-style: italic;
+}
+
+/* ============================================================
+   MODERATION NOTICE
+============================================================ */
+
+.photographer-review-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 20px;
+  padding: 11px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+}
+
+.photographer-review-notice svg {
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+}
+
+.photographer-review-notice p {
+  margin: 0;
+  font: 11px/1.55 var(--font-navigation);
+}
+
+.photographer-review-notice.pending {
+  border-color: rgba(154, 119, 48, 0.18);
+  background: rgba(154, 119, 48, 0.06);
+  color: #755a26;
+}
+
+.photographer-review-notice.approved {
+  border-color: rgba(63, 123, 89, 0.18);
+  background: rgba(63, 123, 89, 0.06);
+  color: #3f684d;
+}
+
+.photographer-review-notice.rejected {
+  border-color: rgba(145, 78, 71, 0.18);
+  background: rgba(145, 78, 71, 0.05);
+  color: #814942;
+}
+
+/* ============================================================
+   FOOTER / ACTIONS
+============================================================ */
+
+.photographer-review-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-top: 17px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.photographer-review-submitted {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text);
+}
+
+.photographer-review-submitted svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-accent);
+}
+
+.photographer-review-submitted span {
+  font: 10px/1.5 var(--font-navigation);
+}
+
+.photographer-review-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.photographer-review-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 39px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font: 600 11px/1.5 var(--font-navigation);
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.photographer-review-button.approve {
+  border: 1px solid var(--color-accent-dark);
+  background: var(--color-accent-dark);
+  color: #ffffff;
+}
+
+.photographer-review-button.approve:hover:not(:disabled) {
+  background: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.photographer-review-button.reject {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-heading);
+}
+
+.photographer-review-button.reject:hover:not(:disabled) {
+  border-color: rgba(145, 78, 71, 0.3);
+  background: #f7eae8;
+  color: #914e47;
+}
+
+.photographer-review-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   EMPTY / ERROR STATE
+============================================================ */
+
+.photographer-reviews-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 45px 24px;
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.photographer-reviews-state.compact {
+  min-height: 230px;
+}
+
+.photographer-reviews-state > svg {
+  margin-bottom: 15px;
+  color: var(--color-accent);
+}
+
+.photographer-reviews-state h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.photographer-reviews-state p {
+  max-width: 430px;
+  margin: 0;
+  color: var(--color-text);
+  font: 12px/1.6 var(--font-navigation);
+}
+
+.photographer-reviews-state button {
+  margin-top: 17px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--color-accent-dark);
+  color: #ffffff;
+  font: 600 11px var(--font-navigation);
+  cursor: pointer;
+}
+
+.photographer-reviews-state.error {
+  border-style: solid;
+  border-color: rgba(145, 78, 71, 0.22);
+}
+
+/* ============================================================
+   LOADING
+============================================================ */
+
+.photographer-reviews-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+}
+
+.photographer-reviews-loading p {
+  margin: 15px 0 0;
+  color: var(--color-text);
+  font: 12px var(--font-navigation);
+}
+
+.photographer-reviews-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-accent-light);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: photographer-reviews-spin 0.8s linear infinite;
+}
+
+@keyframes photographer-reviews-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 1000px) {
+  .photographer-reviews-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 750px) {
+  .photographer-reviews-page {
+    padding: 24px 18px 40px;
+  }
+
+  .photographer-review-booking {
+    grid-template-columns: 1fr;
+  }
+
+  .photographer-review-card-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .photographer-review-actions {
+    width: 100%;
+  }
+
+  .photographer-review-actions button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .photographer-reviews-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 11px;
+  }
+
+  .photographer-review-stat {
+    min-height: 88px;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .photographer-review-stat strong {
+    font-size: 23px;
+  }
+
+  .photographer-review-stat span {
+    font-size: 10px;
+  }
+
+  .photographer-review-card {
+    padding: 18px;
+  }
+
+  .photographer-review-card-top {
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .photographer-review-actions {
+    flex-direction: column;
+  }
+
+  .photographer-review-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .photographer-reviews-summary {
+    grid-template-columns: 1fr;
+  }
+}
