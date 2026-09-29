@@ -166,7 +166,7 @@ export default function NewGallery() {
         //
         // This is the important part.
         //
-        // We use the existing galleries to determine which bookings
+        // Use the existing galleries to determine which bookings
         // already have a gallery.
         // ---------------------------------------------------------
         const { data: galleryData, error: galleriesError } =
@@ -604,7 +604,7 @@ export default function NewGallery() {
    */
   if (loading) {
     return (
-      <div className="new-gallery-page">
+      <div className="galleries-page">
         <div className="new-gallery-state">
           <div className="new-gallery-state-spinner" />
           <h2>Loading gallery setup...</h2>
@@ -617,7 +617,7 @@ export default function NewGallery() {
   }
 
   return (
-    <div className="new-gallery-page">
+    <div className="galleries-page">
       <div className="new-gallery-header">
         <button
           type="button"

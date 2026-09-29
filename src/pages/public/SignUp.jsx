@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import "./Login.css";
+import brandLogo from "../../assets/images/Lensflow_brand_logo-transparent.png";
 
 export default function SignUp() {
   const location = useLocation();
@@ -46,10 +47,12 @@ export default function SignUp() {
     if (params.get("service") && params.get("photographer") === photographerId) query.set("service", params.get("service"));
     const destination = `/client/bookings/new?${query}`;
     try {
-      const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: {
-        data: { signup_type: "client", first_name: firstName.trim(), last_name: lastName.trim(), photographer_id: photographerId },
-        emailRedirectTo: `${window.location.origin}${destination}`,
-      } });
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(), password, options: {
+          data: { signup_type: "client", first_name: firstName.trim(), last_name: lastName.trim(), photographer_id: photographerId },
+          emailRedirectTo: `${window.location.origin}${destination}`,
+        }
+      });
       if (error) throw error;
       if (data.session) {
         // Reload so authenticated account setup finishes before protected routes render.
@@ -63,7 +66,18 @@ export default function SignUp() {
   }
 
   return <main className="login-page">
-    <Link className="login-brand" to="/">LensFlow</Link>
+      <button
+        type="button"
+        className="login-logo"
+      >
+        <span >
+          <Link to="/">
+          <img className="login-logo-img" src={brandLogo} alt="LensFlow" />
+          </Link>
+        </span>
+
+      </button>
+
     <section className="login-card">
       <div className="login-heading"><p className="login-eyebrow">Your photography journey</p><h1>Create a client account</h1><p>Book sessions and access your galleries and invoices.</p></div>
       {message ? <p role="status">{message}</p> : loading ? <p role="status">Loading photographers…</p> : loadError ? <div role="alert"><p>{loadError}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Try again</button></div> : photographers.length === 0 ? <p>No photographers are accepting online sign-ups yet. Please contact your photographer for access.</p> : <form className="login-form" onSubmit={submit}>

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Home.css";
+import brandLogo from "../../assets/images/Lensflow_brand_logo-transparent.png";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -69,13 +70,10 @@ export default function Home() {
           className="home-logo"
           onClick={() => navigate("/")}
         >
-          <span className="home-logo-mark">
-            LF
+          <span >
+            <img className="home-logo-img" src={brandLogo} alt="LensFlow" />
           </span>
-
-          <span className="home-logo-name">
-            LensFlow
-          </span>
+          
         </button>
 
         <button
@@ -84,7 +82,6 @@ export default function Home() {
           onClick={() => navigate("/login")}
         >
           Sign In
-          <span>→</span>
         </button>
 
       </nav>
@@ -385,7 +382,7 @@ export default function Home() {
           type="button"
           onClick={() => navigate("/login")}
         >
-          Sign In →
+          Sign In
         </button>
 
       </footer>

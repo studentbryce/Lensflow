@@ -579,10 +579,6 @@ export default function PhotographerClientProfile() {
                   )}
                 </span>
 
-                <span className="booking-arrow">
-                  →
-                </span>
-
               </button>
             ))}
 

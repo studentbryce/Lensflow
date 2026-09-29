@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
+import brandLogo from "../../assets/images/Lensflow_brand_logo-transparent.png";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ export default function Login() {
 
       setError(
         err.message ||
-          "Unable to sign in. Please check your details."
+        "Unable to sign in. Please check your details."
       );
     } finally {
       setLoading(false);
@@ -54,16 +55,13 @@ export default function Login() {
 
       <button
         type="button"
-        className="login-brand"
+        className="login-logo"
         onClick={() => navigate("/")}
       >
-        <span className="login-brand-mark">
-          LF
+        <span >
+          <img className="login-logo-img" src={brandLogo} alt="LensFlow" />
         </span>
 
-        <span>
-          LensFlow
-        </span>
       </button>
 
       {/* =====================================================

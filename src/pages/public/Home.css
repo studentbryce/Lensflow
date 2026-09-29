@@ -9,6 +9,7 @@
   color: var(--text-h);
 
   overflow: hidden;
+  padding: 25px 0px;
 }
 
 /* =========================================================
@@ -21,9 +22,7 @@
   justify-content: space-between;
 
   width: min(1200px, calc(100% - 50px));
-
   margin: 0 auto;
-  padding: 25px 0;
 }
 
 .home-logo {
@@ -31,8 +30,7 @@
   align-items: center;
   gap: 11px;
 
-  padding: 0;
-
+  margin: 0;
   border: none;
   background: transparent;
 
@@ -41,28 +39,14 @@
   cursor: pointer;
 }
 
-.home-logo-mark {
+.home-logo-img {
   display: flex;
   align-items: center;
   justify-content: center;
 
-  width: 31px;
-  height: 31px;
+  width: 160px;
+  height: auto;
 
-  border: 1px solid var(--accent);
-  border-radius: 50%;
-
-  color: var(--accent);
-
-  font-family: "Noto Serif", serif;
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.home-logo-name {
-  font-family: "Noto Serif", serif;
-  font-size: 20px;
-  letter-spacing: -0.2px;
 }
 
 .home-login-link {
@@ -108,8 +92,7 @@
   display: grid;
 
   grid-template-columns:
-    minmax(400px, 0.9fr)
-    minmax(500px, 1.1fr);
+    minmax(400px, 0.9fr) minmax(500px, 1.1fr);
 
   align-items: center;
 
@@ -720,7 +703,8 @@
 
     gap: 50px;
 
-    padding: 60px 0 80px;
+    padding: 30px 0 80px;
+    margin: 0 auto;
   }
 
   .home-hero-content {
@@ -729,6 +713,8 @@
 
   .home-preview {
     max-width: 700px;
+    width: 90%;
+    margin: 0 auto;
   }
 
   .home-feature-grid {
@@ -747,13 +733,28 @@
   }
 
   .home-nav {
-    padding: 20px 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    margin: 0 auto;
   }
+
+  .home-logo {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .home-login-link {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    white-space: nowrap;
+  }
+
 
   .home-hero {
     min-height: auto;
 
-    padding: 60px 0;
+    padding: 10px 0;
   }
 
   .home-hero h1 {
@@ -765,32 +766,17 @@
     font-size: 19px;
   }
 
-  .preview-content {
-    grid-template-columns: 1fr;
+  .preview-window {
+    width: 90%;
+    margin: 0 auto;
   }
 
   .preview-sidebar {
     display: none;
   }
 
-  .preview-dashboard {
-    padding: 20px;
-  }
-
-  .preview-window {
-    transform: none;
-  }
-
-  .preview-stats {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .preview-booking {
-    grid-template-columns: 32px 1fr;
-  }
-
-  .preview-status {
-    display: none;
+  .preview-content {
+    grid-template-columns: 1fr;
   }
 
   .home-features {

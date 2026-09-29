@@ -20,14 +20,10 @@
    Brand
 ========================================================= */
 
-.login-brand {
+.login-logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-
-  margin-bottom: 65px;
-
-  padding: 0;
+  gap: 11px;
 
   border: none;
   background: transparent;
@@ -35,25 +31,15 @@
   color: var(--text-h);
 
   cursor: pointer;
-
-  font-family: "Noto Serif", serif;
-  font-size: 21px;
 }
 
-.login-brand-mark {
+.login-logo-img {
   display: flex;
   align-items: center;
   justify-content: center;
 
-  width: 32px;
-  height: 32px;
-
-  border: 1px solid var(--accent);
-  border-radius: 50%;
-
-  color: var(--accent);
-
-  font-size: 10px;
+  width: 160px;
+  height: auto;
 }
 
 /* =========================================================
@@ -66,6 +52,7 @@
   box-sizing: border-box;
 
   padding: 40px;
+  margin-top: 30px;
 
   border: 1px solid var(--border);
   border-radius: 12px;

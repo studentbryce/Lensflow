@@ -416,8 +416,51 @@
 }
 
 .booking-date {
-  font-family: "Cormorant Garamond", serif;
-  font-size: 17px;
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: fit-content;
+
+    height: fit-content;
+
+    border-radius: 10px;
+
+    background: var(--accent-bg);
+}
+
+
+.booking-date strong {
+    color: var(--text-h);
+
+    font-family: "Noto Serif", serif;
+
+    font-size: 20px;
+
+    line-height: 1;
+
+    font-weight: 500;
+}
+
+
+.booking-date span {
+    margin-top: 5px;
+
+    color: var(--accent);
+
+    font-family: "Open Sans", sans-serif;
+
+    font-size: 9px;
+
+    font-weight: 600;
+
+    letter-spacing: 1.2px;
+
+    text-transform: uppercase;
 }
 
 .booking-service {
