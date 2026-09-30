@@ -2,9 +2,29 @@ import {
     useCallback,
     useEffect,
     useRef,
+    useMemo,
     useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+    BiArrowBack,
+    BiCalendar,
+    BiCheckCircle,
+    BiChevronLeft,
+    BiChevronRight,
+    BiEdit,
+    BiImage,
+    BiImages,
+    BiLinkExternal,
+    BiLockAlt,
+    BiMap,
+    BiPlay,
+    BiTimeFive,
+    BiTrash,
+    BiUpload,
+    BiUser,
+    BiX,
+} from "react-icons/bi";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import "./GalleryDetails.css";
@@ -43,6 +63,21 @@ const formatDateTime = (date) => {
         month: "short",
         year: "numeric",
         hour: "2-digit",
+        minute: "2-digit",
+    });
+};
+
+const formatTime = (value) => {
+    if (!value) return "—";
+
+    const [hours, minutes] = String(value).split(":");
+    if (hours === undefined || minutes === undefined) return value;
+
+    const date = new Date();
+    date.setHours(Number(hours), Number(minutes), 0, 0);
+
+    return date.toLocaleTimeString("en-NZ", {
+        hour: "numeric",
         minute: "2-digit",
     });
 };
@@ -149,6 +184,7 @@ export default function GalleryDetails() {
     const [client, setClient] = useState(null);
     const [booking, setBooking] = useState(null);
     const [media, setMedia] = useState([]);
+    const [selectedMedia, setSelectedMedia] = useState(null);
 
     const [photographerId, setPhotographerId] = useState(null);
 
@@ -397,6 +433,51 @@ export default function GalleryDetails() {
     useEffect(() => {
         loadGallery();
     }, [loadGallery]);
+
+    const selectedIndex = useMemo(() => {
+        if (!selectedMedia) return -1;
+
+        return media.findIndex(
+            (item) => item.media_id === selectedMedia.media_id
+        );
+    }, [media, selectedMedia]);
+
+    const navigateMedia = useCallback((direction) => {
+        if (selectedIndex === -1 || media.length === 0) return;
+
+        const nextIndex =
+            (selectedIndex + direction + media.length) % media.length;
+
+        setSelectedMedia(media[nextIndex]);
+    }, [media, selectedIndex]);
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (!selectedMedia) return;
+
+            if (event.key === "Escape") {
+                setSelectedMedia(null);
+            } else if (event.key === "ArrowRight") {
+                navigateMedia(1);
+            } else if (event.key === "ArrowLeft") {
+                navigateMedia(-1);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [selectedMedia, navigateMedia]);
+
+    useEffect(() => {
+        if (!selectedMedia) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [selectedMedia]);
 
     // ------------------------------------------------------------
     // Update gallery settings
@@ -904,15 +985,10 @@ export default function GalleryDetails() {
     // ------------------------------------------------------------
     // Media statistics
     // ------------------------------------------------------------
-    const photoCount = media.filter(
-        (item) =>
-            getMediaType(item) === "image"
-    ).length;
-
-    const videoCount = media.filter(
-        (item) =>
-            getMediaType(item) === "video"
-    ).length;
+    const photos = media.filter((item) => getMediaType(item) === "image");
+    const videos = media.filter((item) => getMediaType(item) === "video");
+    const photoCount = photos.length;
+    const videoCount = videos.length;
 
     // ------------------------------------------------------------
     // Loading state
@@ -921,7 +997,7 @@ export default function GalleryDetails() {
         return (
             <div className="gallery-details-page">
                 <div className="gallery-details-loading">
-                    <div className="gallery-details-spinner"></div>
+                    <div className="gallery-details-spinner" />
                     <p>Loading gallery...</p>
                 </div>
             </div>
@@ -936,141 +1012,102 @@ export default function GalleryDetails() {
             <div className="gallery-details-page">
                 <div className="gallery-details-error">
                     <div className="gallery-details-error-icon">
-                        !
+                        <BiImage aria-hidden="true" />
                     </div>
-
                     <h2>Unable to load gallery</h2>
-
                     <p>{error}</p>
-
-                    <button
-                        className="gallery-details-button primary"
-                        onClick={() =>
-                            navigate(
-                                "/photographer/galleries"
-                            )
-                        }
-                    >
-                        Back to Galleries
-                    </button>
+                    <div className="gallery-details-error-actions">
+                        <button
+                            type="button"
+                            className="gallery-details-button secondary"
+                            onClick={() => navigate("/photographer/galleries")}
+                        >
+                            Back to Galleries
+                        </button>
+                        <button
+                            type="button"
+                            className="gallery-details-button primary"
+                            onClick={loadGallery}
+                        >
+                            Try Again
+                        </button>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    if (!gallery) {
-        return null;
-    }
+    if (!gallery) return null;
 
-    const clientName =
-        getClientName(client);
-
-    const bookingDate =
-        getBookingDate(booking);
-
-    const bookingTime =
-        getBookingTime(booking);
+    const clientName = getClientName(client);
+    const bookingDate = getBookingDate(booking);
+    const bookingTime = getBookingTime(booking);
 
     return (
-        <div className="gallery-details-page">
+        <div className="gallery-details-page photographer-gallery-details">
             <div className="gallery-details-container">
+                <button
+                    type="button"
+                    className="gallery-details-back"
+                    onClick={() => navigate("/photographer/galleries")}
+                >
+                    <BiArrowBack aria-hidden="true" />
+                    Back to Galleries
+                </button>
 
-                {/* ======================================================
-            PAGE HEADER
-        ====================================================== */}
-                <div className="gallery-details-header">
-
-                    <div className="gallery-details-header-left">
-
-                        <button
-                            className="gallery-details-back"
-                            onClick={() =>
-                                navigate(
-                                    "/photographer/galleries"
-                                )
-                            }
-                        >
-                            <span>←</span>
-                            Back to Galleries
-                        </button>
-
-                        <div className="gallery-details-title-row">
-
-                            <div>
-                                <div className="gallery-details-title-line">
-
-                                    <h1>{gallery.name}</h1>
-
-                                    <span
-                                        className={`gallery-details-status ${gallery.is_published
-                                                ? "published"
-                                                : "unpublished"
-                                            }`}
-                                    >
-                                        <span className="gallery-details-status-dot"></span>
-
-                                        {gallery.is_published
-                                            ? "Published"
-                                            : "Unpublished"}
-                                    </span>
-
-                                </div>
-
-                                <p className="gallery-details-subtitle">
-                                    {gallery.description ||
-                                        "Manage this client gallery and its media."}
-                                </p>
-                            </div>
-
+                <header className="gallery-details-header">
+                    <div className="gallery-details-header-main">
+                        <div className="gallery-details-eyebrow">Client gallery</div>
+                        <div className="photographer-gallery-title-row">
+                            <h1>{gallery.name}</h1>
+                            <span
+                                className={`gallery-details-status ${
+                                    gallery.is_published ? "published" : "unpublished"
+                                }`}
+                            >
+                                <span className="gallery-details-status-dot" />
+                                {gallery.is_published ? "Published" : "Unpublished"}
+                            </span>
                         </div>
 
+                        <p className="gallery-details-description">
+                            {gallery.description ||
+                                "Manage this client gallery, access settings and uploaded media."}
+                        </p>
                     </div>
 
                     <div className="gallery-details-header-actions">
-
                         <button
+                            type="button"
                             className="gallery-details-button secondary"
                             onClick={() =>
-                                navigate(
-                                    `/photographer/galleries/${gallery.gallery_id}/edit`
-                                )
+                                navigate(`/photographer/galleries/${gallery.gallery_id}/edit`)
                             }
                             disabled={deletingGallery}
                         >
+                            <BiEdit aria-hidden="true" />
                             Edit Gallery
                         </button>
 
                         <button
+                            type="button"
                             className="gallery-details-button danger"
-                            onClick={
-                                handleDeleteGallery
-                            }
+                            onClick={handleDeleteGallery}
                             disabled={deletingGallery}
                         >
-                            {deletingGallery
-                                ? "Deleting..."
-                                : "Delete Gallery"}
+                            <BiTrash aria-hidden="true" />
+                            {deletingGallery ? "Deleting..." : "Delete Gallery"}
                         </button>
-
                     </div>
+                </header>
 
-                </div>
-
-                {/* ======================================================
-            ALERTS
-        ====================================================== */}
                 {error && (
                     <div className="gallery-details-alert error">
-                        <span className="gallery-details-alert-icon">
-                            !
-                        </span>
-
+                        <span className="gallery-details-alert-icon">!</span>
                         <span>{error}</span>
-
                         <button
-                            onClick={() =>
-                                setError("")
-                            }
+                            type="button"
+                            onClick={() => setError("")}
                             aria-label="Dismiss error"
                         >
                             ×
@@ -1080,755 +1117,483 @@ export default function GalleryDetails() {
 
                 {success && (
                     <div className="gallery-details-alert success">
-                        <span className="gallery-details-alert-icon">
-                            ✓
-                        </span>
-
+                        <span className="gallery-details-alert-icon">✓</span>
                         <span>{success}</span>
                     </div>
                 )}
 
-                {/* ======================================================
-            SUMMARY CARDS
-        ====================================================== */}
-                <div className="gallery-details-summary">
-
-                    <div className="gallery-details-summary-card">
-                        <div className="gallery-details-summary-icon">
-                            ◉
+                <section className="gallery-details-info">
+                    <div className="gallery-info-card">
+                        <div className="gallery-info-icon">
+                            <BiUser aria-hidden="true" />
                         </div>
-
                         <div>
-                            <span className="gallery-details-summary-label">
-                                Client
-                            </span>
+                            <span>Client</span>
+                            <strong title={clientName}>{clientName}</strong>
+                        </div>
+                    </div>
 
+                    <div className="gallery-info-card">
+                        <div className="gallery-info-icon">
+                            <BiCalendar aria-hidden="true" />
+                        </div>
+                        <div>
+                            <span>Session date</span>
                             <strong>
-                                {clientName}
+                                {bookingDate ? formatDate(bookingDate) : "Not linked"}
                             </strong>
                         </div>
                     </div>
 
-                    <div className="gallery-details-summary-card">
-                        <div className="gallery-details-summary-icon">
-                            ▣
+                    <div className="gallery-info-card">
+                        <div className="gallery-info-icon">
+                            <BiImage aria-hidden="true" />
                         </div>
-
                         <div>
-                            <span className="gallery-details-summary-label">
-                                Booking
-                            </span>
-
-                            <strong>
-                                {bookingDate
-                                    ? formatDate(
-                                        bookingDate
-                                    )
-                                    : "No booking date"}
-                            </strong>
+                            <span>Photos</span>
+                            <strong>{photoCount}</strong>
                         </div>
                     </div>
 
-                    <div className="gallery-details-summary-card">
-                        <div className="gallery-details-summary-icon">
-                            ▧
+                    <div className="gallery-info-card">
+                        <div className="gallery-info-icon">
+                            <BiPlay aria-hidden="true" />
                         </div>
-
                         <div>
-                            <span className="gallery-details-summary-label">
-                                Photos
-                            </span>
-
-                            <strong>
-                                {photoCount}
-                            </strong>
+                            <span>Videos</span>
+                            <strong>{videoCount}</strong>
                         </div>
                     </div>
+                </section>
 
-                    <div className="gallery-details-summary-card">
-                        <div className="gallery-details-summary-icon">
-                            ▶
-                        </div>
-
+                <section className="photographer-gallery-access">
+                    <div className="photographer-gallery-access-heading">
                         <div>
-                            <span className="gallery-details-summary-label">
-                                Videos
-                            </span>
-
-                            <strong>
-                                {videoCount}
-                            </strong>
+                            <span className="gallery-details-section-eyebrow">Gallery access</span>
+                            <h2>Client visibility & downloads</h2>
                         </div>
+                        <p>
+                            Control whether the client can view this gallery and download its media.
+                        </p>
                     </div>
 
-                </div>
-
-                {/* ======================================================
-            MAIN CONTENT
-        ====================================================== */}
-                <div className="gallery-details-grid">
-
-                    {/* ====================================================
-              LEFT COLUMN
-          ==================================================== */}
-                    <div className="gallery-details-main">
-
-                        {/* --------------------------------------------------
-                MEDIA SECTION
-            -------------------------------------------------- */}
-                        <section className="gallery-details-card">
-
-                            <div className="gallery-details-card-header">
-
-                                <div>
-                                    <h2>Gallery Media</h2>
-
-                                    <p>
-                                        Photos and videos uploaded to this client
-                                        gallery.
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept={[
-                                            ...ALLOWED_PHOTO_TYPES,
-                                            ...ALLOWED_VIDEO_TYPES,
-                                        ].join(",")}
-                                        multiple
-                                        onChange={
-                                            handleMediaUpload
-                                        }
-                                        disabled={uploading}
-                                        style={{
-                                            display: "none",
-                                        }}
-                                    />
-
-                                    <button
-                                        className="gallery-details-button primary"
-                                        onClick={
-                                            openFilePicker
-                                        }
-                                        disabled={uploading}
-                                    >
-                                        {uploading
-                                            ? "Uploading..."
-                                            : "+ Upload Media"}
-                                    </button>
-                                </div>
-
+                    <div className="photographer-gallery-access-grid">
+                        <article
+                            className={`photographer-gallery-access-card ${
+                                gallery.is_published ? "active" : ""
+                            }`}
+                        >
+                            <div className="photographer-gallery-access-icon">
+                                {gallery.is_published ? (
+                                    <BiCheckCircle aria-hidden="true" />
+                                ) : (
+                                    <BiLockAlt aria-hidden="true" />
+                                )}
                             </div>
-
-                            {/* Upload status */}
-                            {uploading && (
-                                <div className="gallery-upload-status">
-                                    <div className="gallery-upload-spinner"></div>
-
-                                    <div>
-                                        <strong>
-                                            Uploading media
-                                        </strong>
-
-                                        <span>
-                                            {uploadProgress ||
-                                                "Please wait..."}
-                                        </span>
-                                    </div>
+                            <div className="photographer-gallery-access-content">
+                                <div className="photographer-gallery-access-title">
+                                    <strong>Client access</strong>
+                                    <span>{gallery.is_published ? "Published" : "Hidden"}</span>
                                 </div>
-                            )}
-
-                            {media.length === 0 ? (
-                                <div className="gallery-details-empty">
-
-                                    <div className="gallery-details-empty-icon">
-                                        ◫
-                                    </div>
-
-                                    <h3>
-                                        No media uploaded yet
-                                    </h3>
-
-                                    <p>
-                                        Upload photos and videos to start building
-                                        this client gallery.
-                                    </p>
-
-                                    <button
-                                        className="gallery-details-button primary"
-                                        onClick={
-                                            openFilePicker
-                                        }
-                                        disabled={uploading}
-                                    >
-                                        Upload First Media
-                                    </button>
-
-                                </div>
-                            ) : (
-                                <div className="gallery-media-grid">
-
-                                    {media.map(
-                                        (mediaItem) => {
-                                            const mediaType =
-                                                getMediaType(
-                                                    mediaItem
-                                                );
-
-                                            const mediaUrl =
-                                                mediaItem.signedUrl;
-
-                                            return (
-                                                <div
-                                                    className="gallery-media-item"
-                                                    key={
-                                                        mediaItem.media_id
-                                                    }
-                                                >
-
-                                                    <div className="gallery-media-preview">
-
-                                                        {mediaType ===
-                                                            "image" &&
-                                                            mediaUrl ? (
-                                                            <img
-                                                                src={
-                                                                    mediaUrl
-                                                                }
-                                                                alt={
-                                                                    mediaItem.file_name
-                                                                }
-                                                            />
-                                                        ) : mediaType ===
-                                                            "video" &&
-                                                            mediaUrl ? (
-                                                            <video
-                                                                src={
-                                                                    mediaUrl
-                                                                }
-                                                                controls
-                                                                preload="metadata"
-                                                            />
-                                                        ) : (
-                                                            <div className="gallery-media-placeholder">
-                                                                {mediaType ===
-                                                                    "video"
-                                                                    ? "▶"
-                                                                    : "▧"}
-                                                            </div>
-                                                        )}
-
-                                                        <span className="gallery-media-type">
-                                                            {mediaType ===
-                                                                "video"
-                                                                ? "VIDEO"
-                                                                : "image"}
-                                                        </span>
-
-                                                    </div>
-
-                                                    <div className="gallery-media-info">
-
-                                                        <div className="gallery-media-name">
-                                                            {
-                                                                mediaItem.file_name
-                                                            }
-                                                        </div>
-
-                                                        <div className="gallery-media-meta">
-
-                                                            <span>
-                                                                {formatFileSize(
-                                                                    mediaItem.file_size
-                                                                )}
-                                                            </span>
-
-                                                            <span>
-                                                                {formatDate(
-                                                                    mediaItem.uploaded_at
-                                                                )}
-                                                            </span>
-
-                                                        </div>
-
-                                                        <div className="gallery-media-actions">
-
-                                                            {mediaUrl && (
-                                                                <a
-                                                                    href={
-                                                                        mediaUrl
-                                                                    }
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                    className="gallery-media-view"
-                                                                >
-                                                                    View
-                                                                </a>
-                                                            )}
-
-                                                            <button
-                                                                className="gallery-media-delete"
-                                                                onClick={() =>
-                                                                    handleDeleteMedia(
-                                                                        mediaItem
-                                                                    )
-                                                                }
-                                                                disabled={
-                                                                    deletingMediaId ===
-                                                                    mediaItem.media_id
-                                                                }
-                                                            >
-                                                                {deletingMediaId ===
-                                                                    mediaItem.media_id
-                                                                    ? "Deleting..."
-                                                                    : "Delete"}
-                                                            </button>
-
-                                                        </div>
-
-                                                    </div>
-
-                                                </div>
-                                            );
-                                        }
-                                    )}
-
-                                </div>
-                            )}
-
-                        </section>
-
-                        {/* --------------------------------------------------
-                GALLERY INFORMATION
-            -------------------------------------------------- */}
-                        <section className="gallery-details-card">
-
-                            <div className="gallery-details-card-header">
-                                <div>
-                                    <h2>
-                                        Gallery Information
-                                    </h2>
-
-                                    <p>
-                                        Details associated with this client
-                                        gallery.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="gallery-details-information">
-
-                                <div className="gallery-details-information-row">
-                                    <span>
-                                        Gallery Name
-                                    </span>
-
-                                    <strong>
-                                        {gallery.name}
-                                    </strong>
-                                </div>
-
-                                <div className="gallery-details-information-row">
-                                    <span>
-                                        Client
-                                    </span>
-
-                                    <strong>
-                                        {clientName}
-                                    </strong>
-                                </div>
-
-                                <div className="gallery-details-information-row">
-                                    <span>
-                                        Booking Date
-                                    </span>
-
-                                    <strong>
-                                        {bookingDate
-                                            ? formatDate(
-                                                bookingDate
-                                            )
-                                            : "—"}
-                                    </strong>
-                                </div>
-
-                                <div className="gallery-details-information-row">
-                                    <span>
-                                        Booking Time
-                                    </span>
-
-                                    <strong>
-                                        {bookingTime ||
-                                            "—"}
-                                    </strong>
-                                </div>
-
-                                <div className="gallery-details-information-row">
-                                    <span>
-                                        Created
-                                    </span>
-
-                                    <strong>
-                                        {formatDateTime(
-                                            gallery.created_at
-                                        )}
-                                    </strong>
-                                </div>
-
-                                <div className="gallery-details-information-row">
-                                    <span>
-                                        Last Updated
-                                    </span>
-
-                                    <strong>
-                                        {formatDateTime(
-                                            gallery.updated_at
-                                        )}
-                                    </strong>
-                                </div>
-
-                            </div>
-
-                            {gallery.description && (
-                                <div className="gallery-details-description">
-
-                                    <span>
-                                        Description
-                                    </span>
-
-                                    <p>
-                                        {gallery.description}
-                                    </p>
-
-                                </div>
-                            )}
-
-                        </section>
-
-                    </div>
-
-                    {/* ====================================================
-              RIGHT COLUMN
-          ==================================================== */}
-                    <aside className="gallery-details-sidebar">
-
-                        {/* --------------------------------------------------
-                GALLERY SETTINGS
-            -------------------------------------------------- */}
-                        <section className="gallery-details-card">
-
-                            <div className="gallery-details-card-header">
-
-                                <div>
-                                    <h2>
-                                        Gallery Settings
-                                    </h2>
-
-                                    <p>
-                                        Control how clients access this gallery.
-                                    </p>
-                                </div>
-
-                            </div>
-
-                            <div className="gallery-details-settings">
-
-                                {/* Publish */}
-                                <div
-                                    className={`gallery-details-setting ${gallery.is_published
-                                            ? "active"
-                                            : ""
-                                        }`}
-                                >
-
-                                    <div className="gallery-details-setting-icon">
-                                        {gallery.is_published
-                                            ? "✓"
-                                            : "○"}
-                                    </div>
-
-                                    <div className="gallery-details-setting-content">
-
-                                        <div className="gallery-details-setting-title">
-
-                                            <strong>
-                                                Publish Gallery
-                                            </strong>
-
-                                            <span
-                                                className={
-                                                    gallery.is_published
-                                                        ? "enabled"
-                                                        : "disabled"
-                                                }
-                                            >
-                                                {gallery.is_published
-                                                    ? "Published"
-                                                    : "Unpublished"}
-                                            </span>
-
-                                        </div>
-
-                                        <p>
-                                            {gallery.is_published
-                                                ? "The gallery is available to the client."
-                                                : "The gallery is hidden from the client."}
-                                        </p>
-
-                                        <button
-                                            className="gallery-details-setting-button"
-                                            onClick={() =>
-                                                updateGallerySetting(
-                                                    "is_published",
-                                                    !gallery.is_published
-                                                )
-                                            }
-                                            disabled={
-                                                saving ||
-                                                deletingGallery
-                                            }
-                                        >
-                                            {gallery.is_published
-                                                ? "Unpublish Gallery"
-                                                : "Publish Gallery"}
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                                {/* Downloads */}
-                                <div
-                                    className={`gallery-details-setting ${gallery.allow_downloads
-                                            ? "active"
-                                            : ""
-                                        }`}
-                                >
-
-                                    <div className="gallery-details-setting-icon">
-                                        {gallery.allow_downloads
-                                            ? "✓"
-                                            : "○"}
-                                    </div>
-
-                                    <div className="gallery-details-setting-content">
-
-                                        <div className="gallery-details-setting-title">
-
-                                            <strong>
-                                                Client Downloads
-                                            </strong>
-
-                                            <span
-                                                className={
-                                                    gallery.allow_downloads
-                                                        ? "enabled"
-                                                        : "disabled"
-                                                }
-                                            >
-                                                {gallery.allow_downloads
-                                                    ? "Enabled"
-                                                    : "Disabled"}
-                                            </span>
-
-                                        </div>
-
-                                        <p>
-                                            {gallery.allow_downloads
-                                                ? "Clients can download permitted media."
-                                                : "Clients cannot download gallery media."}
-                                        </p>
-
-                                        <button
-                                            className="gallery-details-setting-button"
-                                            onClick={() =>
-                                                updateGallerySetting(
-                                                    "allow_downloads",
-                                                    !gallery.allow_downloads
-                                                )
-                                            }
-                                            disabled={
-                                                saving ||
-                                                deletingGallery
-                                            }
-                                        >
-                                            {gallery.allow_downloads
-                                                ? "Disable Downloads"
-                                                : "Enable Downloads"}
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </section>
-
-                        {/* --------------------------------------------------
-                CLIENT INFORMATION
-            -------------------------------------------------- */}
-                        <section className="gallery-details-card">
-
-                            <div className="gallery-details-card-header">
-
-                                <div>
-                                    <h2>
-                                        Client
-                                    </h2>
-
-                                    <p>
-                                        Customer associated with this gallery.
-                                    </p>
-                                </div>
-
-                            </div>
-
-                            <div className="gallery-details-client">
-
-                                <div className="gallery-details-client-avatar">
-                                    {clientName
-                                        .charAt(0)
-                                        .toUpperCase()}
-                                </div>
-
-                                <div className="gallery-details-client-info">
-
-                                    <strong>
-                                        {clientName}
-                                    </strong>
-
-                                    {client?.profile
-                                        ?.email && (
-                                            <span>
-                                                {
-                                                    client
-                                                        .profile
-                                                        .email
-                                                }
-                                            </span>
-                                        )}
-
-                                    {client?.profile
-                                        ?.phone && (
-                                            <span>
-                                                {
-                                                    client
-                                                        .profile
-                                                        .phone
-                                                }
-                                            </span>
-                                        )}
-
-                                </div>
-
-                            </div>
-
-                            {gallery.client_id && (
+                                <p>
+                                    {gallery.is_published
+                                        ? "The client can open this gallery from their LensFlow account."
+                                        : "The gallery is hidden from the client until it is published."}
+                                </p>
                                 <button
-                                    className="gallery-details-full-button"
+                                    type="button"
+                                    className="gallery-details-button secondary compact"
                                     onClick={() =>
-                                        navigate(
-                                            `/photographer/clients/${gallery.client_id}`
+                                        updateGallerySetting(
+                                            "is_published",
+                                            !gallery.is_published
                                         )
                                     }
-                                    disabled={
-                                        deletingGallery
+                                    disabled={saving || deletingGallery}
+                                >
+                                    {gallery.is_published ? "Unpublish Gallery" : "Publish Gallery"}
+                                </button>
+                            </div>
+                        </article>
+
+                        <article
+                            className={`photographer-gallery-access-card ${
+                                gallery.allow_downloads ? "active" : ""
+                            }`}
+                        >
+                            <div className="photographer-gallery-access-icon">
+                                {gallery.allow_downloads ? (
+                                    <BiCheckCircle aria-hidden="true" />
+                                ) : (
+                                    <BiLockAlt aria-hidden="true" />
+                                )}
+                            </div>
+                            <div className="photographer-gallery-access-content">
+                                <div className="photographer-gallery-access-title">
+                                    <strong>Client downloads</strong>
+                                    <span>{gallery.allow_downloads ? "Enabled" : "Disabled"}</span>
+                                </div>
+                                <p>
+                                    {gallery.allow_downloads
+                                        ? "The client can download media that is marked as downloadable."
+                                        : "The client can view published media but cannot download it."}
+                                </p>
+                                <button
+                                    type="button"
+                                    className="gallery-details-button secondary compact"
+                                    onClick={() =>
+                                        updateGallerySetting(
+                                            "allow_downloads",
+                                            !gallery.allow_downloads
+                                        )
+                                    }
+                                    disabled={saving || deletingGallery}
+                                >
+                                    {gallery.allow_downloads
+                                        ? "Disable Downloads"
+                                        : "Enable Downloads"}
+                                </button>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section className="gallery-details-media-section photographer-gallery-media-section">
+                    <div className="gallery-details-section-heading">
+                        <div>
+                            <span className="gallery-details-section-eyebrow">Gallery</span>
+                            <h2>Photos & videos</h2>
+                        </div>
+
+                        <div className="photographer-gallery-media-actions">
+                            <div className="gallery-details-media-summary">
+                                <span>{photoCount} photos</span>
+                                <span>{videoCount} videos</span>
+                            </div>
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept={[...ALLOWED_PHOTO_TYPES, ...ALLOWED_VIDEO_TYPES].join(",")}
+                                multiple
+                                onChange={handleMediaUpload}
+                                disabled={uploading}
+                                className="photographer-gallery-file-input"
+                            />
+
+                            <button
+                                type="button"
+                                className="gallery-details-button primary"
+                                onClick={openFilePicker}
+                                disabled={uploading || deletingGallery}
+                            >
+                                <BiUpload aria-hidden="true" />
+                                {uploading ? "Uploading..." : "Upload Media"}
+                            </button>
+                        </div>
+                    </div>
+
+                    {uploading && (
+                        <div className="gallery-upload-status">
+                            <div className="gallery-upload-spinner" />
+                            <div>
+                                <strong>Uploading media</strong>
+                                <span>{uploadProgress || "Preparing upload..."}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {media.length === 0 ? (
+                        <div className="gallery-details-empty">
+                            <div className="gallery-details-empty-icon">
+                                <BiImages aria-hidden="true" />
+                            </div>
+                            <h3>No media uploaded yet</h3>
+                            <p>
+                                Upload photos or videos to make them available in this client gallery.
+                            </p>
+                            <button
+                                type="button"
+                                className="gallery-details-button primary"
+                                onClick={openFilePicker}
+                                disabled={uploading || deletingGallery}
+                            >
+                                <BiUpload aria-hidden="true" />
+                                Upload Media
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="gallery-details-grid">
+                            {media.map((mediaItem) => {
+                                const video = getMediaType(mediaItem) === "video";
+
+                                return (
+                                    <article
+                                        key={mediaItem.media_id}
+                                        className={`gallery-media-card ${video ? "video" : ""}`}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="gallery-media-preview"
+                                            onClick={() => setSelectedMedia(mediaItem)}
+                                            aria-label={`View ${mediaItem.file_name || (video ? "video" : "photo")}`}
+                                        >
+                                            {mediaItem.signedUrl ? (
+                                                video ? (
+                                                    <video
+                                                        src={mediaItem.signedUrl}
+                                                        preload="metadata"
+                                                        muted
+                                                        playsInline
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src={mediaItem.signedUrl}
+                                                        alt={mediaItem.file_name || "Gallery photo"}
+                                                        loading="lazy"
+                                                    />
+                                                )
+                                            ) : (
+                                                <div className="gallery-media-no-preview">
+                                                    {video ? (
+                                                        <BiPlay aria-hidden="true" />
+                                                    ) : (
+                                                        <BiImage aria-hidden="true" />
+                                                    )}
+                                                    <span>Preview unavailable</span>
+                                                </div>
+                                            )}
+
+                                            <div className="gallery-media-overlay">
+                                                <span className="gallery-media-view-icon">
+                                                    {video ? (
+                                                        <BiPlay aria-hidden="true" />
+                                                    ) : (
+                                                        <BiLinkExternal aria-hidden="true" />
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            <span className="gallery-media-type">
+                                                {video ? (
+                                                    <BiPlay aria-hidden="true" />
+                                                ) : (
+                                                    <BiImage aria-hidden="true" />
+                                                )}
+                                                {video ? "Video" : "Photo"}
+                                            </span>
+                                        </button>
+
+                                        <div className="gallery-media-card-footer">
+                                            <div className="gallery-media-file">
+                                                <strong title={mediaItem.file_name || "Gallery media"}>
+                                                    {mediaItem.file_name || "Gallery media"}
+                                                </strong>
+                                                <span>
+                                                    {formatFileSize(mediaItem.file_size)}
+                                                    {mediaItem.uploaded_at
+                                                        ? ` · ${formatDateTime(mediaItem.uploaded_at)}`
+                                                        : ""}
+                                                </span>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                className="gallery-media-delete"
+                                                onClick={() => handleDeleteMedia(mediaItem)}
+                                                disabled={
+                                                    deletingMediaId === mediaItem.media_id ||
+                                                    uploading ||
+                                                    deletingGallery
+                                                }
+                                                aria-label={`Delete ${mediaItem.file_name || "media"}`}
+                                                title="Delete media"
+                                            >
+                                                <BiTrash aria-hidden="true" />
+                                            </button>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    )}
+                </section>
+
+                <section className="photographer-gallery-linked-section">
+                    <div className="gallery-details-section-heading">
+                        <div>
+                            <span className="gallery-details-section-eyebrow">Linked records</span>
+                            <h2>Client & booking details</h2>
+                        </div>
+                    </div>
+
+                    <div className="photographer-gallery-linked-grid">
+                        <article className="photographer-gallery-linked-card">
+                            <div className="photographer-gallery-linked-icon">
+                                <BiUser aria-hidden="true" />
+                            </div>
+                            <div className="photographer-gallery-linked-content">
+                                <span>Client</span>
+                                <strong>{clientName}</strong>
+                                {client?.profile?.email && <p>{client.profile.email}</p>}
+                                {client?.profile?.phone && <p>{client.profile.phone}</p>}
+                            </div>
+                            {gallery.client_id && (
+                                <button
+                                    type="button"
+                                    className="gallery-details-button secondary compact"
+                                    onClick={() =>
+                                        navigate(`/photographer/clients/${gallery.client_id}`)
                                     }
                                 >
                                     View Client
-                                    <span>→</span>
                                 </button>
                             )}
+                        </article>
 
-                        </section>
-
-                        {/* --------------------------------------------------
-                BOOKING INFORMATION
-            -------------------------------------------------- */}
-                        <section className="gallery-details-card">
-
-                            <div className="gallery-details-card-header">
-
-                                <div>
-                                    <h2>
-                                        Booking
-                                    </h2>
-
+                        <article className="photographer-gallery-linked-card">
+                            <div className="photographer-gallery-linked-icon">
+                                <BiCalendar aria-hidden="true" />
+                            </div>
+                            <div className="photographer-gallery-linked-content">
+                                <span>Booking</span>
+                                <strong>
+                                    {bookingDate ? formatDate(bookingDate) : "No booking linked"}
+                                </strong>
+                                {bookingTime && (
                                     <p>
-                                        Booking associated with this gallery.
+                                        <BiTimeFive aria-hidden="true" />
+                                        {formatTime(bookingTime)}
+                                        {booking?.end_time ? ` – ${formatTime(booking.end_time)}` : ""}
                                     </p>
-                                </div>
-
-                            </div>
-
-                            <div className="gallery-details-booking">
-
-                                <div className="gallery-details-booking-row">
-                                    <span>
-                                        Date
-                                    </span>
-
-                                    <strong>
-                                        {bookingDate
-                                            ? formatDate(
-                                                bookingDate
-                                            )
-                                            : "—"}
-                                    </strong>
-                                </div>
-
-                                <div className="gallery-details-booking-row">
-                                    <span>
-                                        Time
-                                    </span>
-
-                                    <strong>
-                                        {bookingTime ||
-                                            "—"}
-                                    </strong>
-                                </div>
-
-                                {booking?.status && (
-                                    <div className="gallery-details-booking-row">
-                                        <span>
-                                            Status
-                                        </span>
-
-                                        <strong className="booking-status">
-                                            {booking.status}
-                                        </strong>
-                                    </div>
                                 )}
-
+                                {booking?.location && (
+                                    <p>
+                                        <BiMap aria-hidden="true" />
+                                        {booking.location}
+                                    </p>
+                                )}
                             </div>
-
                             {gallery.booking_id && (
                                 <button
-                                    className="gallery-details-full-button"
+                                    type="button"
+                                    className="gallery-details-button secondary compact"
                                     onClick={() =>
-                                        navigate(
-                                            `/photographer/bookings/${gallery.booking_id}`
-                                        )
-                                    }
-                                    disabled={
-                                        deletingGallery
+                                        navigate(`/photographer/bookings/${gallery.booking_id}`)
                                     }
                                 >
                                     View Booking
-                                    <span>→</span>
                                 </button>
                             )}
-
-                        </section>
-
-                    </aside>
-
-                </div>
-
+                        </article>
+                    </div>
+                </section>
             </div>
+
+            {selectedMedia && (
+                <div
+                    className="gallery-lightbox"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Gallery media viewer"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) {
+                            setSelectedMedia(null);
+                        }
+                    }}
+                >
+                    <div className="gallery-lightbox-toolbar">
+                        <div className="gallery-lightbox-title">
+                            <span>{selectedIndex + 1} / {media.length}</span>
+                            <strong>
+                                {selectedMedia.file_name ||
+                                    (getMediaType(selectedMedia) === "video" ? "Video" : "Photo")}
+                            </strong>
+                        </div>
+
+                        <div className="gallery-lightbox-actions">
+                            <button
+                                type="button"
+                                className="gallery-lightbox-button danger"
+                                onClick={async () => {
+                                    await handleDeleteMedia(selectedMedia);
+                                    setSelectedMedia(null);
+                                }}
+                                disabled={deletingMediaId === selectedMedia.media_id}
+                                title="Delete media"
+                                aria-label="Delete media"
+                            >
+                                <BiTrash aria-hidden="true" />
+                            </button>
+
+                            <button
+                                type="button"
+                                className="gallery-lightbox-button"
+                                onClick={() => setSelectedMedia(null)}
+                                title="Close"
+                                aria-label="Close viewer"
+                            >
+                                <BiX aria-hidden="true" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {media.length > 1 && (
+                        <>
+                            <button
+                                type="button"
+                                className="gallery-lightbox-nav previous"
+                                onClick={() => navigateMedia(-1)}
+                                aria-label="Previous media"
+                            >
+                                <BiChevronLeft aria-hidden="true" />
+                            </button>
+                            <button
+                                type="button"
+                                className="gallery-lightbox-nav next"
+                                onClick={() => navigateMedia(1)}
+                                aria-label="Next media"
+                            >
+                                <BiChevronRight aria-hidden="true" />
+                            </button>
+                        </>
+                    )}
+
+                    <div className="gallery-lightbox-content">
+                        {getMediaType(selectedMedia) === "video" ? (
+                            selectedMedia.signedUrl ? (
+                                <video
+                                    className="gallery-lightbox-video"
+                                    src={selectedMedia.signedUrl}
+                                    controls
+                                    autoPlay
+                                    playsInline
+                                />
+                            ) : (
+                                <div className="gallery-lightbox-unavailable">
+                                    <BiPlay aria-hidden="true" />
+                                    <p>Preview unavailable</p>
+                                </div>
+                            )
+                        ) : selectedMedia.signedUrl ? (
+                            <img
+                                className="gallery-lightbox-image"
+                                src={selectedMedia.signedUrl}
+                                alt={selectedMedia.file_name || "Gallery photo"}
+                            />
+                        ) : (
+                            <div className="gallery-lightbox-unavailable">
+                                <BiImage aria-hidden="true" />
+                                <p>Preview unavailable</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="gallery-lightbox-hint">
+                        Use ← → to navigate · Press Esc to close
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

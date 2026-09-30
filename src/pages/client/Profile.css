@@ -26,3 +26,72 @@
 .client-account-state button { margin-top: 18px; }
 @media (max-width: 900px) { .client-account-layout { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .client-account-card { padding: 20px; } .client-account-fields { grid-template-columns: 1fr; } }
+
+/* =========================================================
+   PHOTOGRAPHER SETTINGS VISUAL PARITY
+========================================================= */
+
+.client-account-page { box-sizing: border-box; }
+.client-account-header { margin-bottom: 34px; }
+.client-account-page .client-account-eyebrow {
+  margin-bottom: 8px;
+  color: var(--color-accent-dark);
+  font: 700 10px var(--font-navigation);
+  letter-spacing: 1.6px;
+}
+
+.client-account-header h1 {
+  margin: 0 0 10px;
+  color: var(--color-heading);
+  font: 500 clamp(34px, 4vw, 46px) var(--font-heading);
+  letter-spacing: -0.7px;
+}
+
+.client-account-header > p:last-child { max-width: 680px; color: var(--color-muted); font: 18px/1.65 var(--font-body); }
+.client-account-layout { grid-template-columns: 230px minmax(0, 1fr); gap: 24px; }
+.client-account-card {
+  padding: 34px;
+  border-color: var(--color-border-light);
+  border-radius: var(--border-radius-medium);
+}
+
+.client-account-card h2 { color: var(--color-heading); font: 500 27px var(--font-heading); }
+.client-account-fields { gap: 22px; }
+.client-account-fields label {
+  margin-bottom: 8px;
+  color: var(--color-heading);
+  font: 700 11px var(--font-navigation);
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.client-account-fields input {
+  min-height: 47px;
+  padding: 13px 14px;
+  border-color: var(--color-border);
+  border-radius: var(--border-radius-small);
+  background: var(--color-surface);
+  color: var(--color-heading);
+  font: 16px var(--font-body);
+}
+
+.client-account-fields input:focus { border-color: var(--color-accent-dark); box-shadow: 0 0 0 3px var(--color-accent-light); }
+.client-account-fields small { color: var(--color-muted); font: 13px/1.5 var(--font-body); }
+.client-account-actions { justify-content: flex-end; margin-top: 28px; padding-top: 24px; }
+.client-account-actions button,
+.client-account-state button {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--border-radius-small);
+  font: 700 11px var(--font-navigation);
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .client-account-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .client-account-card { padding: 24px 20px; }
+}

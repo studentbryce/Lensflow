@@ -228,7 +228,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="dashboard-page">
+      <div className="dashboard-page client-dashboard-page">
         <div className="dashboard-loading">
           Loading your dashboard...
         </div>
@@ -242,7 +242,7 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="dashboard-page">
+      <div className="dashboard-page client-dashboard-page">
         <div className="dashboard-error">
           <h2>Unable to load dashboard</h2>
           <p>{error}</p>
@@ -258,7 +258,7 @@ export default function Dashboard() {
   const firstName = profile?.first_name || "there";
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page client-dashboard-page">
 
       {/* -----------------------------------------------------
           Welcome Header
@@ -387,23 +387,13 @@ export default function Dashboard() {
                   <span>
                     {booking.end_time
                       ? `${booking.start_time?.slice(
-                          0,
-                          5
-                        )} – ${booking.end_time.slice(
-                          0,
-                          5
-                        )}`
+                        0,
+                        5
+                      )} – ${booking.end_time.slice(
+                        0,
+                        5
+                      )}`
                       : "Scheduled session"}
-                  </span>
-
-                </div>
-
-                <div className="booking-status">
-
-                  <span
-                    className={`status status-${booking.status}`}
-                  >
-                    {booking.status}
                   </span>
 
                 </div>
@@ -417,6 +407,15 @@ export default function Dashboard() {
 
                 </div>
 
+                <div className="booking-status">
+
+                  <span
+                    className={`status status-${booking.status}`}
+                  >
+                    {booking.status}
+                  </span>
+
+                </div>
               </div>
 
             ))}
@@ -560,15 +559,15 @@ export default function Dashboard() {
                       Due{" "}
                       {invoice.due_date
                         ? new Date(
-                            `${invoice.due_date}T00:00:00`
-                          ).toLocaleDateString(
-                            "en-NZ",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            }
-                          )
+                          `${invoice.due_date}T00:00:00`
+                        ).toLocaleDateString(
+                          "en-NZ",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )
                         : "Date unavailable"}
                     </span>
 

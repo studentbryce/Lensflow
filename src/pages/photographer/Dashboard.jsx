@@ -95,7 +95,7 @@ export default function Dashboard() {
   return <div className="dashboard-page photographer-dashboard">
     <DashboardHeader profile={profile}/>
     <section className="dashboard-stats" aria-label="Dashboard summary">
-      <StatCard title="Upcoming Bookings" value={stats.bookings} description="Upcoming sessions"/>
+      <StatCard title="Upcoming Bookings" value={stats.bookings} description="Scheduled sessions"/>
       <StatCard title="Clients" value={stats.clients} description="Active clients"/>
       <StatCard title="Outstanding" value={currency(stats.outstanding)} description="Unpaid invoices"/>
       <StatCard title="Galleries" value={stats.galleries} description="Published galleries"/>
@@ -114,8 +114,10 @@ export default function Dashboard() {
             <span>{b.start_time?.slice(0,5)||"—"}</span></div>
           <div className="dashboard-info"><strong title={name}>{name}</strong>
             <span>{b.services?.name||"Photography Session"}</span></div>
-          <div className="dashboard-booking-right">
-            <strong>{currency(b.total_amount)}</strong>
+          <div className="dashboard-booking-amount">
+            {currency(b.total_amount)}
+          </div>
+          <div className="dashboard-booking-status">
             <span className={`dashboard-mini-badge ${b.status === "confirmed" ? "is-published" : "is-draft"}`}>{b.status}</span>
           </div>
         </div>;

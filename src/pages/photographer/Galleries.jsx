@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BiCalendar,
-  BiCheck,
-  BiCollection,
+  BiCheckCircle,
+  BiChevronRight,
   BiDownload,
-  BiEditAlt,
-  BiErrorCircle,
+  BiEdit,
   BiImage,
+  BiImages,
+  BiLockAlt,
   BiPlus,
   BiSearch,
   BiX,
@@ -523,9 +524,11 @@ export default function Galleries() {
   if (loading) {
     return (
       <div className="galleries-page">
-        <div className="galleries-loading">
-          <div className="galleries-spinner"></div>
-          <p>Loading galleries...</p>
+        <div className="galleries-container">
+          <div className="galleries-loading">
+            <div className="galleries-spinner" aria-hidden="true"></div>
+            <p>Loading galleries...</p>
+          </div>
         </div>
       </div>
     );
@@ -538,30 +541,28 @@ export default function Galleries() {
   if (errorMessage) {
     return (
       <div className="galleries-page">
-        <div className="galleries-header">
-          <div>
-            <p className="galleries-eyebrow">Client delivery</p>
+        <div className="galleries-container">
+          <header className="galleries-header">
+            <div className="galleries-header-main">
+              <span className="galleries-eyebrow">Client delivery</span>
+              <h1>Galleries</h1>
+              <p className="galleries-description">
+                Manage your client galleries, delivered media and download access.
+              </p>
+            </div>
+          </header>
 
-            <h1>Galleries</h1>
-
-            <p className="galleries-description">
-              Manage your client galleries and delivered photography.
-            </p>
+          <div className="galleries-message error-message" role="alert">
+            <strong>Unable to load galleries</strong>
+            <span>{errorMessage}</span>
+            <button
+              type="button"
+              className="galleries-retry-button"
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </button>
           </div>
-        </div>
-
-        <div className="galleries-message error-message">
-          <strong>Unable to load galleries</strong>
-
-          <span>{errorMessage}</span>
-
-          <button
-            type="button"
-            className="galleries-retry-button"
-            onClick={() => window.location.reload()}
-          >
-            Try Again
-          </button>
         </div>
       </div>
     );
@@ -569,391 +570,321 @@ export default function Galleries() {
 
   return (
     <div className="galleries-page">
-      {/* ========================================================
-          HEADER
-      ======================================================== */}
+      <div className="galleries-container">
+        {/* ========================================================
+            HEADER
+        ======================================================== */}
 
-      <header className="galleries-header">
-        <div>
-          <p className="galleries-eyebrow">Client delivery</p>
-
-          <h1>Galleries</h1>
-
-          <p className="galleries-description">
-            Manage your client galleries, delivered media and download
-            access.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="galleries-primary-button"
-          onClick={handleCreateGallery}
-        >
-          <BiPlus className="galleries-button-icon" aria-hidden="true" />
-          New Gallery
-        </button>
-      </header>
-
-      {/* ========================================================
-          SUMMARY CARDS
-      ======================================================== */}
-
-      <section className="galleries-summary">
-        <div className="gallery-summary-card">
-          <div className="gallery-summary-icon">
-            <BiCollection aria-hidden="true" />
+        <header className="galleries-header">
+          <div className="galleries-header-main">
+            <span className="galleries-eyebrow">Client delivery</span>
+            <h1>Galleries</h1>
+            <p className="galleries-description">
+              Manage your client galleries, delivered media and download access.
+            </p>
           </div>
-
-          <div>
-            <span>Total Galleries</span>
-            <strong>{totalGalleries}</strong>
-          </div>
-        </div>
-
-        <div className="gallery-summary-card">
-          <div className="gallery-summary-icon published">
-            <BiCheck aria-hidden="true" />
-          </div>
-
-          <div>
-            <span>Published</span>
-            <strong>{publishedGalleries}</strong>
-          </div>
-        </div>
-
-        <div className="gallery-summary-card">
-          <div className="gallery-summary-icon unpublished">
-            <BiErrorCircle aria-hidden="true" />
-          </div>
-
-          <div>
-            <span>Unpublished</span>
-            <strong>{unpublishedGalleries}</strong>
-          </div>
-        </div>
-
-        <div className="gallery-summary-card">
-          <div className="gallery-summary-icon media">
-            <BiImage aria-hidden="true" />
-          </div>
-
-          <div>
-            <span>Total Media</span>
-            <strong>{totalMedia}</strong>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          TOOLBAR
-      ======================================================== */}
-
-      <section className="galleries-toolbar">
-        <div className="galleries-search">
-          <BiSearch aria-hidden="true" />
-
-          <input
-            type="text"
-            placeholder="Search galleries or clients..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-
-          {searchTerm && (
-            <button
-              type="button"
-              className="galleries-clear-search"
-              onClick={() => setSearchTerm("")}
-              aria-label="Clear search"
-            >
-              <BiX aria-hidden="true" />
-            </button>
-          )}
-        </div>
-
-        <div className="galleries-filter-tabs">
-          <button
-            type="button"
-            className={
-              statusFilter === "all"
-                ? "gallery-filter active"
-                : "gallery-filter"
-            }
-            onClick={() => setStatusFilter("all")}
-          >
-            All
-            <span>{totalGalleries}</span>
-          </button>
 
           <button
             type="button"
-            className={
-              statusFilter === "published"
-                ? "gallery-filter active"
-                : "gallery-filter"
-            }
-            onClick={() => setStatusFilter("published")}
+            className="galleries-primary-button"
+            onClick={handleCreateGallery}
           >
-            Published
-            <span>{publishedGalleries}</span>
+            <BiPlus aria-hidden="true" />
+            New Gallery
           </button>
+        </header>
 
-          <button
-            type="button"
-            className={
-              statusFilter === "unpublished"
-                ? "gallery-filter active"
-                : "gallery-filter"
-            }
-            onClick={() => setStatusFilter("unpublished")}
-          >
-            Unpublished
-            <span>{unpublishedGalleries}</span>
-          </button>
-        </div>
-      </section>
+        {/* ========================================================
+            SUMMARY CARDS
+        ======================================================== */}
 
-      {/* ========================================================
-          RESULTS
-      ======================================================== */}
+        <section className="galleries-summary" aria-label="Gallery summary">
+          <div className="gallery-summary-card">
+            <div className="gallery-summary-icon">
+              <BiImages aria-hidden="true" />
+            </div>
+            <div>
+              <span>Total galleries</span>
+              <strong>{totalGalleries}</strong>
+            </div>
+          </div>
 
-      <section className="galleries-content">
-        {filteredGalleries.length === 0 ? (
-          <div className="galleries-empty">
-            <div className="galleries-empty-icon">
+          <div className="gallery-summary-card">
+            <div className="gallery-summary-icon published">
+              <BiCheckCircle aria-hidden="true" />
+            </div>
+            <div>
+              <span>Published</span>
+              <strong>{publishedGalleries}</strong>
+            </div>
+          </div>
+
+          <div className="gallery-summary-card">
+            <div className="gallery-summary-icon unpublished">
+              <BiLockAlt aria-hidden="true" />
+            </div>
+            <div>
+              <span>Unpublished</span>
+              <strong>{unpublishedGalleries}</strong>
+            </div>
+          </div>
+
+          <div className="gallery-summary-card">
+            <div className="gallery-summary-icon media">
               <BiImage aria-hidden="true" />
             </div>
+            <div>
+              <span>Total media</span>
+              <strong>{totalMedia}</strong>
+            </div>
+          </div>
+        </section>
 
-            <h2>
-              {searchTerm || statusFilter !== "all"
-                ? "No galleries found"
-                : "No galleries yet"}
-            </h2>
+        {/* ========================================================
+            SEARCH + FILTERS
+        ======================================================== */}
 
-            <p>
-              {searchTerm || statusFilter !== "all"
-                ? "Try changing your search or filter."
-                : "Create your first client gallery to start delivering photography."}
-            </p>
+        <section className="galleries-toolbar" aria-label="Gallery filters">
+          <div className="galleries-search">
+            <BiSearch aria-hidden="true" />
+            <input
+              type="search"
+              placeholder="Search galleries or clients..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              aria-label="Search galleries"
+            />
 
-            {!searchTerm && statusFilter === "all" && (
+            {searchTerm && (
               <button
                 type="button"
-                className="galleries-primary-button"
-                onClick={handleCreateGallery}
+                className="galleries-clear-search"
+                onClick={() => setSearchTerm("")}
+                aria-label="Clear search"
               >
-                <BiPlus className="galleries-button-icon" aria-hidden="true" />
-                Create Your First Gallery
+                <BiX aria-hidden="true" />
               </button>
             )}
           </div>
-        ) : (
-          <>
-            <div className="galleries-results-heading">
-              <div>
-                <h2>Your Galleries</h2>
 
-                <span>
+          <div className="galleries-filter-tabs" aria-label="Gallery status filter">
+            <button
+              type="button"
+              className={statusFilter === "all" ? "gallery-filter active" : "gallery-filter"}
+              onClick={() => setStatusFilter("all")}
+              aria-pressed={statusFilter === "all"}
+            >
+              All
+              <span>{totalGalleries}</span>
+            </button>
+
+            <button
+              type="button"
+              className={statusFilter === "published" ? "gallery-filter active" : "gallery-filter"}
+              onClick={() => setStatusFilter("published")}
+              aria-pressed={statusFilter === "published"}
+            >
+              Published
+              <span>{publishedGalleries}</span>
+            </button>
+
+            <button
+              type="button"
+              className={statusFilter === "unpublished" ? "gallery-filter active" : "gallery-filter"}
+              onClick={() => setStatusFilter("unpublished")}
+              aria-pressed={statusFilter === "unpublished"}
+            >
+              Unpublished
+              <span>{unpublishedGalleries}</span>
+            </button>
+          </div>
+        </section>
+
+        {/* ========================================================
+            RESULTS
+        ======================================================== */}
+
+        <section className="galleries-content">
+          {filteredGalleries.length === 0 ? (
+            <div className="galleries-empty">
+              <div className="galleries-empty-icon">
+                <BiImages aria-hidden="true" />
+              </div>
+
+              <h2>
+                {searchTerm || statusFilter !== "all"
+                  ? "No galleries found"
+                  : "No galleries yet"}
+              </h2>
+
+              <p>
+                {searchTerm || statusFilter !== "all"
+                  ? "Try changing your search or filter."
+                  : "Create your first client gallery to start delivering photography."}
+              </p>
+
+              {!searchTerm && statusFilter === "all" && (
+                <button
+                  type="button"
+                  className="galleries-primary-button"
+                  onClick={handleCreateGallery}
+                >
+                  <BiPlus aria-hidden="true" />
+                  Create Your First Gallery
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="galleries-results-heading">
+                <div>
+                  <span className="galleries-results-eyebrow">Gallery library</span>
+                  <h2>Your Galleries</h2>
+                </div>
+
+                <span className="galleries-results-count">
                   Showing {filteredGalleries.length}{" "}
-                  {filteredGalleries.length === 1
-                    ? "gallery"
-                    : "galleries"}
+                  {filteredGalleries.length === 1 ? "gallery" : "galleries"}
                 </span>
               </div>
-            </div>
 
-            <div className="galleries-grid">
-              {filteredGalleries.map((gallery) => {
-                const clientName = gallery.clientName;
-                const bookingDate = gallery.booking?.booking_date;
+              <div className="galleries-grid">
+                {filteredGalleries.map((gallery) => {
+                  const clientName = gallery.clientName;
+                  const bookingDate = gallery.booking?.booking_date;
 
-                return (
-                  <article
-                    className="gallery-card"
-                    key={gallery.gallery_id}
-                  >
-                    {/* ------------------------------------------------
-                        CARD PREVIEW
-                    ------------------------------------------------ */}
+                  return (
+                    <article className="gallery-card" key={gallery.gallery_id}>
+                      <div
+                        className={`gallery-card-preview ${gallery.thumbnail ? "has-thumbnail" : ""}`}
+                      >
+                        {gallery.thumbnail?.url ? (
+                          <img
+                            src={gallery.thumbnail.url}
+                            alt={`${gallery.name} gallery`}
+                            className="gallery-card-thumbnail"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="gallery-preview-placeholder">
+                            <BiImage aria-hidden="true" />
+                            <span>
+                              {gallery.mediaCount > 0
+                                ? `${gallery.mediaCount} media`
+                                : "No media yet"}
+                            </span>
+                          </div>
+                        )}
 
-                    <div
-                      className={`gallery-card-preview ${
-                        gallery.thumbnail ? "has-thumbnail" : ""
-                      }`}
-                    >
-                      {gallery.thumbnail?.url ? (
-                        <img
-                          src={gallery.thumbnail.url}
-                          alt={`${gallery.name} gallery`}
-                          className="gallery-card-thumbnail"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="gallery-preview-placeholder">
-                          <BiImage aria-hidden="true" />
+                        {gallery.mediaCount > 0 && (
+                          <span className="gallery-thumbnail-count">
+                            <BiImages aria-hidden="true" />
+                            {gallery.mediaCount}
+                          </span>
+                        )}
 
+                        <span
+                          className={
+                            gallery.is_published
+                              ? "gallery-status published"
+                              : "gallery-status unpublished"
+                          }
+                        >
+                          <span className="gallery-status-dot" aria-hidden="true"></span>
+                          {getGalleryStatus(gallery.is_published)}
+                        </span>
+                      </div>
+
+                      <div className="gallery-card-content">
+                        <div className="gallery-card-heading">
+                          <h3>{gallery.name}</h3>
+                          <p>{gallery.description || "No gallery description added."}</p>
+                        </div>
+
+                        <div className="gallery-client">
+                          <div className="gallery-client-avatar" aria-hidden="true">
+                            {getInitials(clientName)}
+                          </div>
+                          <div>
+                            <span>Client</span>
+                            <strong>{clientName}</strong>
+                          </div>
+                        </div>
+
+                        <div className="gallery-meta">
+                          <div className="gallery-meta-item">
+                            <BiCalendar aria-hidden="true" />
+                            <div>
+                              <span>Booking</span>
+                              <strong>
+                                {bookingDate ? formatDate(bookingDate) : "No booking"}
+                              </strong>
+                            </div>
+                          </div>
+
+                          <div className="gallery-meta-item">
+                            <BiImages aria-hidden="true" />
+                            <div>
+                              <span>Media</span>
+                              <strong>{formatMediaCount(gallery.mediaCount)}</strong>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="gallery-media-breakdown" aria-label="Media breakdown">
                           <span>
-                            {gallery.mediaCount > 0
-                              ? `${gallery.mediaCount} media`
-                              : "No media yet"}
+                            <strong>{gallery.photoCount}</strong>{" "}
+                            {gallery.photoCount === 1 ? "photo" : "photos"}
+                          </span>
+                          <span className="gallery-breakdown-divider" aria-hidden="true">•</span>
+                          <span>
+                            <strong>{gallery.videoCount}</strong>{" "}
+                            {gallery.videoCount === 1 ? "video" : "videos"}
                           </span>
                         </div>
-                      )}
 
-                      {/* Media count overlay */}
-                      {gallery.mediaCount > 0 && (
-                        <span className="gallery-thumbnail-count">
-                          {gallery.mediaCount}{" "}
-                          {gallery.mediaCount === 1 ? "item" : "items"}
-                        </span>
-                      )}
-
-                      {/* Published status */}
-                      <span
-                        className={
-                          gallery.is_published
-                            ? "gallery-status published"
-                            : "gallery-status unpublished"
-                        }
-                      >
-                        <span className="gallery-status-dot"></span>
-                        {getGalleryStatus(gallery.is_published)}
-                      </span>
-                    </div>
-
-                    {/* ------------------------------------------------
-                        CARD CONTENT
-                    ------------------------------------------------ */}
-
-                    <div className="gallery-card-content">
-                      <div className="gallery-card-heading">
-                        <div>
-                          <h3>{gallery.name}</h3>
-
-                          {gallery.description && (
-                            <p>{gallery.description}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Client */}
-
-                      <div className="gallery-client">
-                        <div className="gallery-client-avatar">
-                          {getInitials(clientName)}
-                        </div>
-
-                        <div>
-                          <span>Client</span>
-                          <strong>{clientName}</strong>
-                        </div>
-                      </div>
-
-                      {/* Gallery metadata */}
-
-                      <div className="gallery-meta">
-                        <div className="gallery-meta-item">
-                          <BiCalendar aria-hidden="true" />
-
-                          <div>
-                            <span>Booking</span>
-
-                            <strong>
-                              {bookingDate
-                                ? formatDate(bookingDate)
-                                : "No booking"}
-                            </strong>
-                          </div>
-                        </div>
-
-                        <div className="gallery-meta-item">
-                          <BiImage aria-hidden="true" />
-
-                          <div>
-                            <span>Media</span>
-
-                            <strong>
-                              {formatMediaCount(gallery.mediaCount)}
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Media breakdown */}
-
-                      <div className="gallery-media-breakdown">
-                        <span>
-                          <strong>{gallery.photoCount}</strong>{" "}
-                          {gallery.photoCount === 1
-                            ? "photo"
-                            : "photos"}
-                        </span>
-
-                        <span className="gallery-breakdown-divider">
-                          •
-                        </span>
-
-                        <span>
-                          <strong>{gallery.videoCount}</strong>{" "}
-                          {gallery.videoCount === 1
-                            ? "video"
-                            : "videos"}
-                        </span>
-                      </div>
-
-                      {/* Download access */}
-
-                      <div className="gallery-download-status">
-                        <BiDownload aria-hidden="true" />
-
-                        <span>
-                          Downloads{" "}
-                          <strong>
-                            {gallery.allow_downloads
-                              ? "Enabled"
-                              : "Disabled"}
-                          </strong>
-                        </span>
-                      </div>
-
-                      {/* Actions */}
-
-                      <div className="gallery-card-actions">
-                        <button
-                          type="button"
-                          className="gallery-view-button"
-                          onClick={() =>
-                            handleViewGallery(gallery.gallery_id)
-                          }
+                        <div
+                          className={`gallery-download-status ${gallery.allow_downloads ? "enabled" : "disabled"}`}
                         >
-                          View Gallery
-                        </button>
+                          <BiDownload aria-hidden="true" />
+                          <span>
+                            Client downloads <strong>{gallery.allow_downloads ? "enabled" : "disabled"}</strong>
+                          </span>
+                        </div>
 
-                        <button
-                          type="button"
-                          className="gallery-edit-button"
-                          onClick={() =>
-                            handleEditGallery(gallery.gallery_id)
-                          }
-                          aria-label={`Edit ${gallery.name}`}
-                          title="Edit gallery"
-                        >
-                          <BiEditAlt aria-hidden="true" />
-                        </button>
+                        <div className="gallery-card-actions">
+                          <button
+                            type="button"
+                            className="gallery-view-button"
+                            onClick={() => handleViewGallery(gallery.gallery_id)}
+                          >
+                            <span>View Gallery</span>
+                            <BiChevronRight aria-hidden="true" />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="gallery-edit-button"
+                            onClick={() => handleEditGallery(gallery.gallery_id)}
+                            aria-label={`Edit ${gallery.name}`}
+                            title="Edit gallery"
+                          >
+                            <BiEdit aria-hidden="true" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="gallery-card-footer">
-                      Updated {formatDate(gallery.updated_at)}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </section>
+                      <div className="gallery-card-footer">
+                        Updated {formatDate(gallery.updated_at)}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

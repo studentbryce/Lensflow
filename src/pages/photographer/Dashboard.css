@@ -206,15 +206,34 @@
     border-bottom: 1px solid var(--color-border-light)
 }
 
+.dashboard-booking-amount{
+    color: var(--color-heading);
+    font-family: var(--font-navigation);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+}
+
+.dashboard-booking-status{
+    display: inline-block;
+    padding: 5px 8px;
+    font-family: "Open Sans", sans-serif;
+    font-size: 7px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    text-align: center;
+    justify-self: center;
+}
+
 .dashboard-booking-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 120px 1fr 130px 100px;
     align-items: center;
-    gap: 32px;
-    min-width: 0;
-    min-height: 65px;
-    padding: 9px 0;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 8px;
     border-bottom: 1px solid var(--color-border-light);
-    font-size: 18px
 }
 
 .dashboard-gallery-row,
@@ -278,13 +297,21 @@
 .dashboard-info>span {
     overflow: hidden;
     color: var(--color-muted);
-    font: 14px var(--font-navigation);
+    font: 12px var(--font-body);
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
     text-overflow: ellipsis;
     white-space: nowrap
+}
+
+.dashboard-info>strong {
+    overflow: hidden;
+    font: 600 15px var(--font-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-heading);
 }
 
 .dashboard-mini-info>span {

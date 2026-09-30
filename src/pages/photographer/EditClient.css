@@ -306,8 +306,7 @@
   display: inline-flex;
   justify-content: center;
   padding: 5px 8px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
+
   font-family: "Open Sans", sans-serif;
   font-size: 8px;
   font-weight: 600;
@@ -318,9 +317,8 @@
 }
 
 .booking-status.confirmed {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-  color: var(--accent);
+  background: rgba(101, 125, 105, 0.12);
+  color: var(--color-success);
 }
 
 .booking-status.completed {
@@ -330,7 +328,8 @@
 }
 
 .booking-status.pending {
-  background: var(--social-bg);
+  background: rgba(162, 125, 77, 0.12);
+  color: var(--color-warning);
 }
 
 .booking-status.cancelled,

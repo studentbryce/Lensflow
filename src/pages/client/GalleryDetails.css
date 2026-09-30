@@ -152,16 +152,16 @@
   padding: 9px 14px;
   border: 1px solid color-mix(
     in srgb,
-    var(--accent) 25%,
+    var(--color-success) 25%,
     var(--border)
   );
   border-radius: 999px;
   background: color-mix(
     in srgb,
-    var(--accent) 8%,
+    var(--color-success) 8%,
     var(--bg)
   );
-  color: var(--accent);
+  color: var(--color-success);
   font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
@@ -171,7 +171,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--color-success);
 }
 
 /* --------------------------------------------------
@@ -188,22 +188,24 @@
 .gallery-info-card {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 14px;
   min-width: 0;
-  padding: 17px;
+  min-height: 105px;
+  padding: 20px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--bg);
   box-shadow: var(--shadow);
+  box-sizing: border-box;
 }
 
 .gallery-info-icon {
   display: grid;
   place-items: center;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 11px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   background: color-mix(
     in srgb,
     var(--accent) 9%,
@@ -213,8 +215,8 @@
 }
 
 .gallery-info-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 21px;
+  height: 21px;
 }
 
 .gallery-info-card > div:last-child {
@@ -1150,14 +1152,28 @@
   }
 }
 
+@media (max-width: 700px) {
+  .gallery-info-card {
+    min-height: 90px;
+    padding: 15px;
+  }
+
+  .gallery-info-icon {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .gallery-info-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
 @media (max-width: 420px) {
   .gallery-details-page {
     padding-right: 10px;
     padding-left: 10px;
-  }
-
-  .gallery-info-card {
-    padding: 14px;
   }
 
   .gallery-details-download-banner {
@@ -1176,4 +1192,89 @@
   .gallery-lightbox-title span {
     display: none;
   }
+}
+
+/* ============================================================
+   PHOTOGRAPHER PAGE VISUAL PARITY
+============================================================ */
+
+.gallery-details-page {
+  --gallery-font-heading: var(--font-heading, "Noto Serif", serif);
+  --gallery-font-body: var(--font-body, "Open Sans", sans-serif);
+  --gallery-font-ui: var(--font-navigation, "Open Sans", sans-serif);
+  font-family: var(--gallery-font-body);
+}
+
+.gallery-info-card {
+  gap: 13px;
+  min-height: auto;
+  padding: 17px;
+  border-radius: 14px;
+  box-sizing: border-box;
+}
+
+.gallery-info-icon {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+}
+
+.gallery-info-icon svg { width: 20px; height: 20px; }
+.gallery-info-card strong { font-size: 0.78rem; }
+.gallery-details-download-banner { padding: 20px; }
+
+.gallery-details-header h1,
+.gallery-details-section-heading h2,
+.gallery-details-empty h3,
+.gallery-details-error h2 {
+  font-family: var(--gallery-font-heading);
+}
+
+.gallery-details-description,
+.gallery-download-banner-content p,
+.gallery-details-empty p,
+.gallery-details-error p,
+.gallery-details-footer p {
+  font-family: var(--gallery-font-body);
+}
+
+.gallery-details-back,
+.gallery-details-eyebrow,
+.gallery-details-header-actions,
+.gallery-details-download-all,
+.gallery-details-ready,
+.gallery-info-card,
+.gallery-download-banner-content strong,
+.gallery-details-section-eyebrow,
+.gallery-details-media-summary,
+.gallery-media-type,
+.gallery-media-no-preview span,
+.gallery-media-file,
+.gallery-media-download,
+.gallery-details-footer strong,
+.gallery-details-loading p,
+.gallery-details-primary-button,
+.gallery-details-secondary-button,
+.gallery-lightbox {
+  font-family: var(--gallery-font-ui);
+}
+
+.gallery-details-page button,
+.gallery-details-page input,
+.gallery-details-page select,
+.gallery-details-page textarea {
+  font-family: var(--gallery-font-ui);
+}
+
+.gallery-details-back { font-size: 0.78rem; font-weight: 700; }
+.gallery-download-banner-content strong { font-size: 0.9rem; font-weight: 700; }
+.gallery-download-banner-content p { font-size: 0.8rem; }
+.gallery-details-empty p,
+.gallery-details-error p { font-size: 0.82rem; }
+
+@media (max-width: 700px) {
+  .gallery-info-card { min-height: auto; padding: 15px; }
+  .gallery-info-icon { flex-basis: auto; width: 40px; height: 40px; }
+  .gallery-info-icon svg { width: 20px; height: 20px; }
 }

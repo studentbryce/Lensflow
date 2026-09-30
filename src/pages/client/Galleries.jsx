@@ -412,7 +412,7 @@ export default function Galleries() {
 
   if (loading) {
     return (
-      <div className="galleries-page">
+      <div className="galleries-page client-galleries-page">
         <div className="galleries-loading">
           <div className="galleries-spinner"></div>
           <p>Loading your galleries...</p>
@@ -427,7 +427,7 @@ export default function Galleries() {
 
   if (errorMessage) {
     return (
-      <div className="galleries-page">
+      <div className="galleries-page client-galleries-page">
         <header className="galleries-header">
           <div>
             <p className="galleries-eyebrow">
@@ -460,7 +460,7 @@ export default function Galleries() {
   }
 
   return (
-    <div className="galleries-page">
+    <div className="galleries-page client-galleries-page">
       {/* ========================================================
           HEADER
       ======================================================== */}

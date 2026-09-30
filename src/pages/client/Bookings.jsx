@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import "./Bookings.css";
 
-const STATUSES = ["all", "pending", "confirmed", "completed", "cancelled", "declined"];
+const STATUSES = ["ALL", "PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "DECLINED"];
 
 function formatDate(value, options = { day: "numeric", month: "short", year: "numeric" }) {
   const date = value ? new Date(`${value}T00:00:00`) : null;
@@ -87,10 +87,12 @@ export default function Bookings() {
   return (
     <div className="client-bookings-page">
       <header className="client-bookings-header">
-        <p className="client-bookings-eyebrow">Your photography</p>
-        <h1>My Bookings</h1>
-        <p>Keep track of your upcoming sessions and revisit your booking history.</p>
-        <Link className="client-booking-button" to="/client/bookings/new">New Booking</Link>
+        <div className="client-bookings-header-main">
+          <p className="client-bookings-eyebrow">Your photography</p>
+          <h1>My Bookings</h1>
+          <p>Keep track of your upcoming sessions and revisit your booking history.</p>
+        </div>
+        <Link className="client-booking-button" to="/client/bookings/new">+ New Booking</Link>
       </header>
 
       {loading ? (
@@ -140,8 +142,12 @@ export default function Bookings() {
                 {items.map((booking) => (
                   <article className="client-bookings-card" key={booking.booking_id}>
                     <div className="client-bookings-date" aria-label={`${formatDate(booking.booking_date)}, ${formatTime(booking.start_time)}`}>
-                      <strong>{formatDate(booking.booking_date, { day: "2-digit", month: "short" })}</strong>
-                      <span>{booking.start_time?.slice(0, 5) || "Time TBC"}</span>
+                      <span className="client-bookings-day">
+                        {formatDate(booking.booking_date, { day: "2-digit" })} 
+                      </span>
+                      <span className="client-bookings-month">
+                        {formatDate(booking.booking_date, { month: "short" })}
+                      </span>
                     </div>
                     <div className="client-bookings-info">
                       <h3>{booking.services?.name || "Photography session"}</h3>
@@ -151,7 +157,7 @@ export default function Bookings() {
                     <div className="client-bookings-meta">
                       <span className="client-bookings-status" data-status={booking.status}>{booking.status || "Unknown"}</span>
                       <strong>{booking.total_amount == null ? "Price to be confirmed" : new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(booking.total_amount)}</strong>
-                      <Link className="client-booking-button client-booking-button-secondary" to={`/client/bookings/${booking.booking_id}`}>View Details</Link>
+                      <Link className="client-booking-button client-booking-button-secondary" to={`/client/bookings/${booking.booking_id}`}>View</Link>
                     </div>
                   </article>
                 ))}

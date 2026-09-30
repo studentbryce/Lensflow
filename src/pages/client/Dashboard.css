@@ -55,21 +55,7 @@
 
 
 .client-welcome .eyebrow {
-    display: block;
-
-    margin-bottom: 6px;
-
-    color: var(--accent);
-
-    font-family: var(--font-navigation);
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-    letter-spacing: 1.5px;
-
-    text-transform: uppercase;
+    font-family: var(--font-subheading);
 }
 
 
@@ -113,6 +99,10 @@
     align-items: flex-end;
 
     margin-bottom: 25px;
+
+    padding-bottom: 9px;
+
+    border-bottom: 1px solid var(--color-border-light);
 }
 
 
@@ -677,4 +667,93 @@
         height: 58px;
     }
 
+}
+
+/* ------------------------------------------------------------
+   PHOTOGRAPHER PAGE VISUAL PARITY
+   ------------------------------------------------------------ */
+
+.dashboard-page:not(.photographer-dashboard) { box-sizing: border-box; }
+
+.dashboard-page:not(.photographer-dashboard) .client-welcome {
+    margin-bottom: 24px;
+    padding-top: 0;
+}
+
+.dashboard-page:not(.photographer-dashboard) .client-welcome h1 {
+    margin: 0 0 8px;
+    font-size: clamp(32px, 3vw, 42px);
+}
+
+.dashboard-page:not(.photographer-dashboard) .client-welcome p {
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.dashboard-page:not(.photographer-dashboard) .dashboard-stats {
+    gap: 14px;
+    margin: 24px 0;
+}
+
+.dashboard-page:not(.photographer-dashboard) .dashboard-section {
+    min-width: 0;
+    margin-bottom: 18px;
+    padding: 22px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-small);
+}
+
+.dashboard-page:not(.photographer-dashboard) .section-heading {
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.dashboard-page:not(.photographer-dashboard) .section-heading .eyebrow {
+    margin-bottom: 3px;
+    color: var(--color-accent);
+    font: italic 23px/1.2 var(--font-subheading);
+}
+
+.dashboard-page:not(.photographer-dashboard) .section-heading h2 {
+    font-size: clamp(19px, 2vw, 25px);
+    font-weight: 500;
+}
+
+.dashboard-page:not(.photographer-dashboard) .booking-row {
+    grid-template-columns: 90px minmax(0, 1fr) 120px 100px;
+    gap: 18px;
+    padding: 12px 4px;
+    border-radius: 0;
+}
+
+.dashboard-page:not(.photographer-dashboard) .booking-date {
+    min-height: 52px;
+    padding: 6px;
+    border-radius: 7px;
+    text-align: center;
+}
+
+.dashboard-page:not(.photographer-dashboard) .booking-date strong { font: 600 13px var(--font-heading); }
+.dashboard-page:not(.photographer-dashboard) .booking-date span {
+    margin-top: 0;
+    font: 10px var(--font-navigation);
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.dashboard-page:not(.photographer-dashboard) .booking-client strong {
+    overflow: hidden;
+    font: 600 15px var(--font-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-page:not(.photographer-dashboard) .booking-client span { font: 12px var(--font-body); }
+.dashboard-page:not(.photographer-dashboard) .booking-amount { font: 600 13px var(--font-navigation); }
+
+@media (max-width: 560px) {
+    .dashboard-page:not(.photographer-dashboard) { padding: 12px 12px 40px; }
+    .dashboard-page:not(.photographer-dashboard) .dashboard-section { padding: 16px; }
 }

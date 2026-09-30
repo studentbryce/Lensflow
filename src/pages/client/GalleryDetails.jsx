@@ -678,7 +678,7 @@ function GalleryDetails() {
 
     if (authLoading || loading) {
         return (
-            <div className="gallery-details-page">
+            <div className="gallery-details-page client-gallery-details-page">
                 <div className="gallery-details-loading">
                     <div className="gallery-details-spinner" />
                     <p>Loading your gallery...</p>
@@ -689,7 +689,7 @@ function GalleryDetails() {
 
     if (error || !gallery) {
         return (
-            <div className="gallery-details-page">
+            <div className="gallery-details-page client-gallery-details-page">
                 <div className="gallery-details-error">
                     <div className="gallery-details-error-icon">
                         <BiErrorCircle aria-hidden="true" />
@@ -725,7 +725,7 @@ function GalleryDetails() {
     }
 
     return (
-        <div className="gallery-details-page">
+        <div className="gallery-details-page client-gallery-details-page">
             <div className="gallery-details-container">
                 {/* Back navigation */}
                 <button
