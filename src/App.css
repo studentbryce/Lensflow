@@ -76,6 +76,17 @@
   filter: brightness(0) invert(1);
 }
 
+.sidebar-brand-home {
+  display: block;
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.sidebar-brand-home:focus-visible {
+  outline: 2px solid var(--color-sidebar-muted);
+  outline-offset: 4px;
+}
+
 
 .sidebar-brand span {
   color: var(--color-sidebar-muted);

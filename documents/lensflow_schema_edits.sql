@@ -979,3 +979,229 @@ TO authenticated;
 DROP POLICY IF EXISTS
 "Clients can update their own reviews"
 ON public.reviews;
+
+
+-- ========================================================
+-- 29. ALTER INVOICE_ITEMS TABLE TO ALLOW NULL SERVICE_ID
+-- ========================================================
+
+alter table public.invoice_items
+alter column service_id drop not null;
+
+
+-- ========================================================
+-- 30. ADD PHOTOGRAPHER TAX SETTINGS AND INVOICE SNAPSHOT
+-- ========================================================
+
+ALTER TABLE public.photographer_profiles
+ADD COLUMN IF NOT EXISTS gst_tax_number varchar(100),
+ADD COLUMN IF NOT EXISTS default_tax_rate numeric(5,2) NOT NULL DEFAULT 15.00;
+
+ALTER TABLE public.invoices
+ADD COLUMN IF NOT EXISTS tax_number varchar(100);
+
+UPDATE public.invoices AS invoice
+SET tax_number = profile.gst_tax_number
+FROM public.photographer_profiles AS profile
+WHERE invoice.photographer_id = profile.photographer_id
+  AND invoice.tax_number IS NULL
+  AND profile.gst_tax_number IS NOT NULL;
+
+
+-- ========================================================
+-- 31. ADD BANK DETAILS AND INVOICE SNAPSHOT
+-- ========================================================
+
+CREATE TABLE IF NOT EXISTS public.photographer_payment_settings (
+    photographer_id uuid PRIMARY KEY
+        REFERENCES public.photographer_profiles(photographer_id)
+        ON DELETE CASCADE,
+    bank_account_name varchar(150),
+    bank_name varchar(150),
+    bank_account_number varchar(100),
+    bank_payment_instructions text,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.photographer_payment_settings
+ENABLE ROW LEVEL SECURITY;
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.photographer_payment_settings
+TO authenticated, service_role;
+
+DROP POLICY IF EXISTS
+"Photographers manage their payment settings"
+ON public.photographer_payment_settings;
+
+CREATE POLICY "Photographers manage their payment settings"
+ON public.photographer_payment_settings
+FOR ALL TO authenticated
+USING (
+    photographer_id = (
+        SELECT private.current_photographer_id()
+    )
+)
+WITH CHECK (
+    photographer_id = (
+        SELECT private.current_photographer_id()
+    )
+);
+
+DROP TRIGGER IF EXISTS
+photographer_payment_settings_updated_at
+ON public.photographer_payment_settings;
+
+CREATE TRIGGER photographer_payment_settings_updated_at
+BEFORE UPDATE ON public.photographer_payment_settings
+FOR EACH ROW
+EXECUTE FUNCTION public.set_updated_at();
+
+ALTER TABLE public.invoices
+ADD COLUMN IF NOT EXISTS bank_account_name varchar(150),
+ADD COLUMN IF NOT EXISTS bank_name varchar(150),
+ADD COLUMN IF NOT EXISTS bank_account_number varchar(100),
+ADD COLUMN IF NOT EXISTS bank_payment_instructions text;
+
+UPDATE public.invoices AS invoice
+SET bank_account_name = settings.bank_account_name,
+    bank_name = settings.bank_name,
+    bank_account_number = settings.bank_account_number,
+    bank_payment_instructions = settings.bank_payment_instructions
+FROM public.photographer_payment_settings AS settings
+WHERE invoice.photographer_id = settings.photographer_id
+  AND invoice.bank_account_name IS NULL
+  AND invoice.bank_account_number IS NULL;
+
+REVOKE ALL
+ON public.photographer_payment_settings
+FROM anon;
+
+REVOKE ALL
+ON public.photographer_payment_settings
+FROM authenticated;
+
+GRANT SELECT, INSERT, UPDATE
+ON public.photographer_payment_settings
+TO authenticated;
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.photographer_payment_settings
+TO service_role;
+
+-- ========================================================
+-- 32. ADD CHECK CONSTRAINT FOR PHOTOGRAPHER TAX RATE
+-- ========================================================
+
+ALTER TABLE public.photographer_profiles
+ADD CONSTRAINT photographer_profiles_default_tax_rate_check
+CHECK (
+    default_tax_rate >= 0
+    AND default_tax_rate <= 100
+);
+
+-- ========================================================
+-- 33. ADD CHECK CONSTRAINT FOR PHOTOGRAPHER GST TAX NUMBER
+-- ========================================================
+
+ALTER TABLE public.photographer_profiles
+ADD CONSTRAINT photographer_profiles_gst_tax_number_not_blank
+CHECK (
+    gst_tax_number IS NULL
+    OR length(trim(gst_tax_number)) > 0
+);
+
+
+-- ========================================================
+-- 34. MOVE TAX SETTINGS INTO PRIVATE PAYMENT SETTINGS
+-- ========================================================
+
+ALTER TABLE public.photographer_payment_settings
+ADD COLUMN IF NOT EXISTS gst_tax_number varchar(100),
+ADD COLUMN IF NOT EXISTS default_tax_rate numeric(5,2)
+    NOT NULL DEFAULT 15.00;
+
+
+-- Copy existing photographer tax settings across
+UPDATE public.photographer_payment_settings AS settings
+SET
+    gst_tax_number = profile.gst_tax_number,
+    default_tax_rate = profile.default_tax_rate
+FROM public.photographer_profiles AS profile
+WHERE settings.photographer_id = profile.photographer_id;
+
+
+-- Create payment settings rows where one does not exist yet
+INSERT INTO public.photographer_payment_settings (
+    photographer_id,
+    gst_tax_number,
+    default_tax_rate
+)
+SELECT
+    profile.photographer_id,
+    profile.gst_tax_number,
+    profile.default_tax_rate
+FROM public.photographer_profiles AS profile
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.photographer_payment_settings AS settings
+    WHERE settings.photographer_id = profile.photographer_id
+);
+
+
+-- Validate tax percentage at database level
+ALTER TABLE public.photographer_payment_settings
+ADD CONSTRAINT photographer_payment_settings_tax_rate_check
+CHECK (
+    default_tax_rate >= 0
+    AND default_tax_rate <= 100
+);
+
+
+-- Prevent blank GST numbers
+ALTER TABLE public.photographer_payment_settings
+ADD CONSTRAINT photographer_payment_settings_gst_number_not_blank
+CHECK (
+    gst_tax_number IS NULL
+    OR length(trim(gst_tax_number)) > 0
+);
+
+
+-- Remove financial settings from the partly-public profile table
+ALTER TABLE public.photographer_profiles
+DROP COLUMN IF EXISTS gst_tax_number,
+DROP COLUMN IF EXISTS default_tax_rate;
+
+
+-- ========================================================
+-- 35. HARDEN INVOICE TABLE PRIVILEGES
+-- ========================================================
+
+-- Remove all existing application-role privileges
+REVOKE ALL
+ON TABLE public.invoices
+FROM anon, authenticated;
+
+-- Anonymous visitors should have no invoice access at all.
+-- No grants are added back for anon.
+
+-- Authenticated users need these operations.
+-- RLS determines whether the authenticated user is the
+-- photographer or client and which rows they may access.
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON TABLE public.invoices
+TO authenticated;
+
+
+-- ========================================================
+-- 36. HARDEN INVOICE ITEMS TABLE PRIVILEGES
+-- ========================================================
+
+REVOKE ALL
+ON TABLE public.invoice_items
+FROM anon, authenticated;
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON TABLE public.invoice_items
+TO authenticated;

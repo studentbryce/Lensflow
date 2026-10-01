@@ -10,6 +10,8 @@ export default function BookingDetails() {
   const [booking, setBooking] = useState(null);
   const [client, setClient] = useState(null);
   const [service, setService] = useState(null);
+  const [existingInvoice, setExistingInvoice] = useState(null);
+  const [existingGallery, setExistingGallery] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -71,6 +73,48 @@ export default function BookingDetails() {
 
       setBooking(data);
       setService(data.services);
+
+      /*
+       * Check whether this booking already has an invoice.
+       *
+       * If an invoice exists, the completed booking action will
+       * open that invoice instead of allowing a duplicate invoice
+       * to be created for the same booking.
+       */
+      const { data: invoiceData, error: invoiceError } =
+        await supabase
+          .from("invoices")
+          .select(`
+            invoice_id,
+            invoice_number,
+            status
+          `)
+          .eq("booking_id", data.booking_id)
+          .maybeSingle();
+
+      if (invoiceError) throw invoiceError;
+
+      setExistingInvoice(invoiceData || null);
+
+      /*
+       * Check whether this booking already has a gallery.
+       * If one exists, the gallery action will open it instead of
+       * allowing another gallery to be created for the same booking.
+       */
+      const { data: galleryData, error: galleryError } =
+        await supabase
+          .from("galleries")
+          .select(`
+            gallery_id,
+            name,
+            is_published
+          `)
+          .eq("booking_id", data.booking_id)
+          .maybeSingle();
+
+      if (galleryError) throw galleryError;
+
+      setExistingGallery(galleryData || null);
 
       /*
        * Retrieve the client profile using the user_id
@@ -230,6 +274,87 @@ export default function BookingDetails() {
     return `${service.duration_minutes} minutes`;
   }
 
+  function handleInvoiceAction() {
+    if (!booking) return;
+
+    /*
+     * If this booking already has an invoice, open it instead
+     * of creating a duplicate.
+     */
+    if (existingInvoice?.invoice_id) {
+      navigate(
+        `/photographer/invoices/${existingInvoice.invoice_id}`
+      );
+      return;
+    }
+
+    /*
+     * Pass the client and booking IDs to NewInvoice.jsx.
+     *
+     * NewInvoice uses these query parameters to preselect the
+     * client and booking. The booked service is then automatically
+     * added to the invoice items.
+     */
+    const params = new URLSearchParams({
+      client_id: booking.client_id,
+      booking_id: booking.booking_id,
+    });
+
+    navigate(
+      `/photographer/invoices/new?${params.toString()}`
+    );
+  }
+
+  function renderInvoiceButton() {
+    return (
+      <button
+        className="action-button secondary-action"
+        onClick={handleInvoiceAction}
+      >
+        {existingInvoice ? "View Invoice" : "Create Invoice"}
+      </button>
+    );
+  }
+
+  function handleGalleryAction() {
+    if (!booking) return;
+
+    /*
+     * If this booking already has a gallery, open it instead of
+     * allowing a duplicate gallery to be created.
+     */
+    if (existingGallery?.gallery_id) {
+      navigate(
+        `/photographer/galleries/${existingGallery.gallery_id}`
+      );
+      return;
+    }
+
+    /*
+     * Pass the client and booking IDs to NewGallery.jsx so the
+     * photographer does not need to select the same booking again.
+     */
+    const params = new URLSearchParams({
+      client_id: booking.client_id,
+      booking_id: booking.booking_id,
+    });
+
+    navigate(
+      `/photographer/galleries/new?${params.toString()}`
+    );
+  }
+
+  function renderGalleryButton() {
+    return (
+      <button
+        className="action-button secondary-action"
+        onClick={handleGalleryAction}
+      >
+        {existingGallery ? "View Gallery" : "Create Gallery"}
+      </button>
+    );
+  }
+
   function renderActions() {
     if (updating) {
       return (
@@ -271,6 +396,8 @@ export default function BookingDetails() {
             >
               Edit Booking
             </button>
+
+            {renderInvoiceButton()}
           </div>
         );
 
@@ -303,29 +430,17 @@ export default function BookingDetails() {
             >
               Cancel Booking
             </button>
+
+            {renderInvoiceButton()}
           </div>
         );
 
       case "completed":
         return (
           <div className="booking-actions">
-            <button
-              className="action-button secondary-action"
-              onClick={() =>
-                console.log("Create invoice")
-              }
-            >
-              Create Invoice
-            </button>
+            {renderInvoiceButton()}
 
-            <button
-              className="action-button secondary-action"
-              onClick={() =>
-                console.log("Create gallery")
-              }
-            >
-              Create Gallery
-            </button>
+            {renderGalleryButton()}
           </div>
         );
 
@@ -333,9 +448,7 @@ export default function BookingDetails() {
       case "declined":
         return (
           <div className="booking-actions">
-            <span className="inactive-message">
-              No further actions are available for this booking.
-            </span>
+            {renderInvoiceButton()}
           </div>
         );
 

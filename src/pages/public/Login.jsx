@@ -16,6 +16,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const passwordResetComplete = Boolean(location.state?.passwordReset);
+
   const from =
     location.state?.from?.pathname
       ? `${location.state.from.pathname}${location.state.from.search || ""}`
@@ -146,6 +148,18 @@ export default function Login() {
             </div>
           )}
 
+          <div className="login-password-help">
+            <Link to="/forgot-password">
+              Forgot password?
+            </Link>
+          </div>
+
+          {passwordResetComplete && !error && (
+            <div className="login-success" role="status">
+              Your password has been updated. Sign in with your new password.
+            </div>
+          )}
+
           {/* Submit */}
 
           <button
@@ -161,7 +175,14 @@ export default function Login() {
           </button>
 
         </form>
-        <p>New to LensFlow? <Link to="/signup" state={location.state}>Create a client account</Link></p>
+        <div className="login-account-links">
+          <p>
+            New photographer? <Link to="/signup/photographer">Create a photographer account</Link>
+          </p>
+          <p>
+            Photography client? <Link to="/signup" state={location.state}>Create a client account</Link>
+          </p>
+        </div>
 
         <button
           type="button"

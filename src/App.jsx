@@ -9,6 +9,9 @@ import './App.css';
 import Home from "./pages/public/Home";
 import Login from "./pages/public/Login";
 import SignUp from "./pages/public/SignUp";
+import PhotographerSignUp from "./pages/public/PhotographerSignUp";
+import ForgotPassword from "./pages/public/ForgotPassword";
+import ResetPassword from "./pages/public/ResetPassword";
 import PhotographerWebsite from "./pages/public/PhotographerWebsite";
 
 import AppLayout from "./layouts/AppLayout";
@@ -68,6 +71,9 @@ export default function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/signup/photographer" element={<PhotographerSignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route
           path="/:photographerSlug"
@@ -256,6 +262,11 @@ export default function App() {
 
               <Route
                 path="invoices"
+                element={<ClientInvoices />}
+              />
+
+              <Route
+                path="invoices/:invoice_id"
                 element={<ClientInvoices />}
               />
 

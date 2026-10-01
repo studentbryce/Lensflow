@@ -261,20 +261,6 @@
     color: var(--color-muted)
 }
 
-.dashboard-gallery-thumb,
-.dashboard-invoice-icon {
-    display: flex;
-    flex: 0 0 51px;
-    align-items: center;
-    justify-content: center;
-    width: 51px;
-    height: 47px;
-    border: 1px solid var(--color-border-light);
-    border-radius: 4px;
-    background: var(--accent-bg);
-    color: var(--color-muted)
-}
-
 .dashboard-gallery-thumb svg,
 .dashboard-invoice-icon svg {
     width: 24px;

@@ -56,8 +56,9 @@
   background: var(--accent);
   color: white;
   font-family: "Open Sans", sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1.4;
   cursor: pointer;
   transition:
     transform 0.2s ease,
@@ -102,6 +103,7 @@
   font-family: "Open Sans", sans-serif;
   font-size: 0.72rem;
   font-weight: 700;
+  line-height: 1.4;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -113,6 +115,7 @@
   font-family: "Noto Serif", serif;
   font-size: 1.55rem;
   font-weight: 500;
+  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -121,7 +124,8 @@
   margin: 7px 0 0;
   color: var(--text);
   font-family: "Open Sans", sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
 }
 
 /* =========================
@@ -161,7 +165,7 @@
   background: var(--bg);
   color: var(--text-h);
   font-family: "Open Sans", sans-serif;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   outline: none;
   transition:
     border-color 0.2s ease,
@@ -187,13 +191,14 @@
 
 .invoice-filter {
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 20px;
   padding: 9px 13px;
   background: var(--bg);
   color: var(--text);
   font-family: "Open Sans", sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
+  line-height: 1.4;
   cursor: pointer;
   transition:
     border-color 0.2s ease,
@@ -260,18 +265,20 @@
   font-family: "Noto Serif", serif;
   font-size: 1.05rem;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .invoice-status {
   display: inline-block;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 4px 8px;
+  padding: 6px 12px;
   color: var(--text);
   font-family: "Open Sans", sans-serif;
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -307,6 +314,7 @@
   font-family: "Noto Serif", serif;
   font-size: 1.35rem;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 /* =========================
@@ -334,6 +342,7 @@
   font-family: "Open Sans", sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
+  line-height: 1;
 }
 
 .invoice-client h3 {
@@ -342,6 +351,7 @@
   font-family: "Noto Serif", serif;
   font-size: 1.05rem;
   font-weight: 500;
+  line-height: 1.35;
 }
 
 .invoice-client p {
@@ -350,6 +360,7 @@
   color: var(--text);
   font-family: "Open Sans", sans-serif;
   font-size: 0.78rem;
+  line-height: 1.5;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -376,6 +387,7 @@
   font-family: "Open Sans", sans-serif;
   font-size: 0.68rem;
   font-weight: 700;
+  line-height: 1.4;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -385,6 +397,7 @@
   font-family: "Open Sans", sans-serif;
   font-size: 0.84rem;
   font-weight: 600;
+  line-height: 1.45;
 }
 
 .invoice-detail strong.overdue-date {
@@ -407,6 +420,7 @@
   font-family: "Open Sans", sans-serif;
   font-size: 0.68rem;
   font-weight: 700;
+  line-height: 1.4;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -439,6 +453,7 @@
   font-family: "Open Sans", sans-serif;
   font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1.4;
   cursor: pointer;
   transition:
     background 0.2s ease,

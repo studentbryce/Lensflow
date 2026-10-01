@@ -152,7 +152,12 @@ CREATE TABLE public.invoices (
     created_at timestamptz DEFAULT now() NOT NULL,
     updated_at timestamptz DEFAULT now() NOT NULL,
     tax_rate numeric(5,2) DEFAULT 15.00 NOT NULL,
-    tax_included boolean DEFAULT false NOT NULL
+    tax_included boolean DEFAULT false NOT NULL,
+    tax_number varchar(100),
+    bank_account_name varchar(150),
+    bank_name varchar(150),
+    bank_account_number varchar(100),
+    bank_payment_instructions text
 );
 
 CREATE TABLE public.media (
@@ -205,6 +210,18 @@ CREATE TABLE public.payments (
     stripe_payment_id varchar(255),
     status public.payment_status DEFAULT 'pending'::public.payment_status NOT NULL,
     paid_at timestamptz,
+    created_at timestamptz DEFAULT now() NOT NULL,
+    updated_at timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.photographer_payment_settings (
+    photographer_id uuid NOT NULL,
+    bank_account_name varchar(150),
+    bank_name varchar(150),
+    bank_account_number varchar(100),
+    bank_payment_instructions text,
+    gst_tax_number varchar(100),
+    default_tax_rate numeric(5,2) DEFAULT 15.00 NOT NULL,
     created_at timestamptz DEFAULT now() NOT NULL,
     updated_at timestamptz DEFAULT now() NOT NULL
 );
@@ -356,6 +373,9 @@ ALTER TABLE public.notifications ADD CONSTRAINT notifications_pkey PRIMARY KEY (
 ALTER TABLE public.payments ADD CONSTRAINT payments_pkey PRIMARY KEY (payment_id);
 ALTER TABLE public.payments ADD CONSTRAINT payments_amount_positive CHECK (amount > 0::numeric);
 ALTER TABLE public.payments ADD CONSTRAINT payments_stripe_id_unique UNIQUE (stripe_payment_id);
+ALTER TABLE public.photographer_payment_settings ADD CONSTRAINT photographer_payment_settings_pkey PRIMARY KEY (photographer_id);
+ALTER TABLE public.photographer_payment_settings ADD CONSTRAINT photographer_payment_settings_tax_rate_check CHECK (default_tax_rate >= 0 AND default_tax_rate <= 100);
+ALTER TABLE public.photographer_payment_settings ADD CONSTRAINT photographer_payment_settings_gst_number_not_blank CHECK (gst_tax_number IS NULL OR length(trim(gst_tax_number)) > 0);
 ALTER TABLE public.photographer_profiles ADD CONSTRAINT photographer_profiles_pkey PRIMARY KEY (photographer_id);
 ALTER TABLE public.photographer_profiles ADD CONSTRAINT photographer_profiles_slug_unique UNIQUE (slug);
 ALTER TABLE public.photographer_profiles ADD CONSTRAINT photographer_profiles_user_unique UNIQUE (user_id);
@@ -401,6 +421,7 @@ ALTER TABLE public.messages ADD CONSTRAINT messages_conversation_id_fkey FOREIGN
 ALTER TABLE public.messages ADD CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(user_id) ON DELETE RESTRICT;
 ALTER TABLE public.notifications ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(user_id) ON DELETE CASCADE;
 ALTER TABLE public.payments ADD CONSTRAINT payments_invoice_fk FOREIGN KEY (invoice_id) REFERENCES public.invoices(invoice_id) ON DELETE RESTRICT;
+ALTER TABLE public.photographer_payment_settings ADD CONSTRAINT photographer_payment_settings_photographer_id_fkey FOREIGN KEY (photographer_id) REFERENCES public.photographer_profiles(photographer_id) ON DELETE CASCADE;
 ALTER TABLE public.portfolio_items ADD CONSTRAINT portfolio_items_photographer_id_fkey FOREIGN KEY (photographer_id) REFERENCES public.photographer_profiles(photographer_id) ON DELETE CASCADE;
 ALTER TABLE public.portfolio_items ADD CONSTRAINT portfolio_items_source_media_fk FOREIGN KEY (source_media_id) REFERENCES public.media(media_id) ON DELETE SET NULL;
 ALTER TABLE public.reviews ADD CONSTRAINT reviews_booking_ownership_fk FOREIGN KEY (photographer_id, client_id, booking_id) REFERENCES public.bookings(photographer_id, client_id, booking_id) ON DELETE RESTRICT;
@@ -565,6 +586,7 @@ CREATE TRIGGER conversations_updated_at BEFORE UPDATE ON public.conversations FO
 CREATE TRIGGER galleries_updated_at BEFORE UPDATE ON public.galleries FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER payments_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER photographer_payment_settings_updated_at BEFORE UPDATE ON public.photographer_payment_settings FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER photographer_profiles_updated_at BEFORE UPDATE ON public.photographer_profiles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER portfolio_items_updated_at BEFORE UPDATE ON public.portfolio_items FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
@@ -581,7 +603,7 @@ CREATE TRIGGER website_settings_updated_at BEFORE UPDATE ON public.website_setti
 -- ---------------------------------------------------------------------------
 
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
-ON public.availability_exceptions, public.availability_rules, public.bookings, public.calendar_integrations, public.clients, public.conversations, public.galleries, public.invoice_items, public.invoices, public.media, public.media_favourites, public.messages, public.notifications, public.payments, public.photographer_profiles, public.portfolio_items, public.profiles, public.reviews, public.services, public.website_content, public.website_settings
+ON public.availability_exceptions, public.availability_rules, public.bookings, public.calendar_integrations, public.clients, public.conversations, public.galleries, public.invoice_items, public.invoices, public.media, public.media_favourites, public.messages, public.notifications, public.payments, public.photographer_payment_settings, public.photographer_profiles, public.portfolio_items, public.profiles, public.reviews, public.services, public.website_content, public.website_settings
 TO anon, authenticated, service_role;
 
 -- Match the source private-schema posture: no direct USAGE for API roles.
@@ -621,6 +643,7 @@ ALTER TABLE public.media_favourites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.photographer_payment_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.photographer_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.portfolio_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -907,6 +930,11 @@ USING (
           AND i.photographer_id = (SELECT private.current_photographer_id())
     )
 );
+
+CREATE POLICY "Photographers manage their payment settings"
+ON public.photographer_payment_settings FOR ALL TO authenticated
+USING (photographer_id = (SELECT private.current_photographer_id()))
+WITH CHECK (photographer_id = (SELECT private.current_photographer_id()));
 
 CREATE POLICY "Photographers can create their own profile"
 ON public.photographer_profiles FOR INSERT TO authenticated

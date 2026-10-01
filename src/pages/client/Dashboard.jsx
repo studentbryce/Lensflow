@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import StatCard from "../../components/dashboard/StatCard";
 import "./Dashboard.css";
+import { BiImage } from "react-icons/bi";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState(null);
@@ -333,6 +335,10 @@ export default function Dashboard() {
             </h2>
           </div>
 
+          <Link className="dashboard-view-all" to="/client/bookings">
+            View all
+          </Link>
+
         </div>
 
         {upcomingBookings.length === 0 ? (
@@ -450,6 +456,10 @@ export default function Dashboard() {
               </h2>
             </div>
 
+            <Link className="dashboard-view-all" to="/client/galleries">
+              View all
+            </Link>
+
           </div>
 
           {recentGalleries.length === 0 ? (
@@ -475,7 +485,7 @@ export default function Dashboard() {
                 >
 
                   <div className="client-gallery-icon">
-                    <span>✦</span>
+                    <span><BiImage/></span>
                   </div>
 
                   <div className="client-gallery-info">
@@ -524,6 +534,10 @@ export default function Dashboard() {
                 Outstanding Invoices
               </h2>
             </div>
+
+            <Link className="dashboard-view-all" to="/client/invoices">
+              View all
+            </Link>
 
           </div>
 

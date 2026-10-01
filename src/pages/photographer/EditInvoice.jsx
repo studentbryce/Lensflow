@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
-import "./NewEditInvoice.css";
+import "./EditInvoice.css";
 
 const EMPTY_ITEM = {
     service_id: "",
@@ -355,7 +355,7 @@ export default function EditInvoice() {
 
             setError(
                 err.message ||
-                    "Unable to load the invoice."
+                "Unable to load the invoice."
             );
         } finally {
             setLoading(false);
@@ -534,10 +534,10 @@ export default function EditInvoice() {
                 (item, itemIndex) =>
                     itemIndex === index
                         ? {
-                              ...item,
-                              [field]:
-                                  value,
-                          }
+                            ...item,
+                            [field]:
+                                value,
+                        }
                         : item
             )
         );
@@ -595,7 +595,7 @@ export default function EditInvoice() {
         if (
             formData.due_date &&
             formData.due_date <
-                formData.issue_date
+            formData.issue_date
         ) {
             return "The due date cannot be before the issue date.";
         }
@@ -638,9 +638,8 @@ export default function EditInvoice() {
                 !item.description ||
                 !item.description.trim()
             ) {
-                return `Please enter a description for invoice item ${
-                    index + 1
-                }.`;
+                return `Please enter a description for invoice item ${index + 1
+                    }.`;
             }
 
             if (
@@ -649,18 +648,16 @@ export default function EditInvoice() {
                 ) ||
                 Number(item.quantity) <= 0
             ) {
-                return `Quantity for invoice item ${
-                    index + 1
-                } must be a positive whole number.`;
+                return `Quantity for invoice item ${index + 1
+                    } must be a positive whole number.`;
             }
 
             if (
                 item.unit_price === "" ||
                 Number(item.unit_price) < 0
             ) {
-                return `Unit price for invoice item ${
-                    index + 1
-                } cannot be negative or empty.`;
+                return `Unit price for invoice item ${index + 1
+                    } cannot be negative or empty.`;
             }
         }
 
@@ -912,7 +909,7 @@ export default function EditInvoice() {
 
             setError(
                 err.message ||
-                    "Unable to update the invoice. Please try again."
+                "Unable to update the invoice. Please try again."
             );
         } finally {
             setSaving(false);
@@ -924,9 +921,9 @@ export default function EditInvoice() {
      */
     if (loading) {
         return (
-            <main className="new-invoice-page">
-                <div className="new-invoice-state">
-                    <div className="new-invoice-spinner" />
+            <main className="edit-invoice-page">
+                <div className="edit-invoice-state">
+                    <div className="edit-invoice-spinner" />
 
                     <h2>
                         Loading invoice...
@@ -946,10 +943,21 @@ export default function EditInvoice() {
      */
     if (error && !formData.invoice_number) {
         return (
-            <main className="new-invoice-page">
-                <header className="new-invoice-header">
+            <main className="edit-invoice-page">
+                <button
+                    type="button"
+                    className="edit-invoice-back-button edit-invoice-top-back"
+                    onClick={() =>
+                        navigate(
+                            "/photographer/invoices"
+                        )
+                    }
+                >
+                    ← Back to Invoices
+                </button>
+                <header className="edit-invoice-header">
                     <div>
-                        <p className="new-invoice-eyebrow">
+                        <p className="edit-invoice-eyebrow">
                             FINANCIAL MANAGEMENT
                         </p>
 
@@ -957,25 +965,14 @@ export default function EditInvoice() {
                             Edit Invoice
                         </h1>
 
-                        <p className="new-invoice-description">
+                        <p className="edit-invoice-description">
                             Update the selected invoice.
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        className="new-invoice-back-button"
-                        onClick={() =>
-                            navigate(
-                                "/photographer/invoices"
-                            )
-                        }
-                    >
-                        ← Back to Invoices
-                    </button>
                 </header>
 
-                <div className="new-invoice-message error-message">
+                <div className="edit-invoice-message edit-invoice-error-message">
                     <strong>
                         Unable to load invoice
                     </strong>
@@ -987,10 +984,23 @@ export default function EditInvoice() {
     }
 
     return (
-        <main className="new-invoice-page">
-            <header className="new-invoice-header">
+        <main className="edit-invoice-page">
+            <button
+                type="button"
+                className="edit-invoice-back-button edit-invoice-top-back"
+                onClick={() =>
+                    navigate(
+                        `/photographer/invoices/${invoice_id}`
+                    )
+                }
+                disabled={saving}
+            >
+                ← Back to Invoice
+            </button>
+
+            <header className="edit-invoice-header">
                 <div>
-                    <p className="new-invoice-eyebrow">
+                    <p className="edit-invoice-eyebrow">
                         FINANCIAL MANAGEMENT
                     </p>
 
@@ -998,28 +1008,16 @@ export default function EditInvoice() {
                         Edit Invoice
                     </h1>
 
-                    <p className="new-invoice-description">
+                    <p className="edit-invoice-description">
                         Update the details, services,
                         GST and notes for this invoice.
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    className="new-invoice-back-button"
-                    onClick={() =>
-                        navigate(
-                            `/photographer/invoices/${invoice_id}`
-                        )
-                    }
-                    disabled={saving}
-                >
-                    ← Back to Invoice
-                </button>
             </header>
 
             {error && (
-                <div className="new-invoice-message error-message">
+                <div className="edit-invoice-message edit-invoice-error-message">
                     <strong>
                         Unable to update invoice
                     </strong>
@@ -1029,7 +1027,7 @@ export default function EditInvoice() {
             )}
 
             {success && (
-                <div className="new-invoice-message success-message">
+                <div className="edit-invoice-message edit-invoice-success-message">
                     {success}
                 </div>
             )}
@@ -1039,8 +1037,8 @@ export default function EditInvoice() {
                     SECTION 01
                 ========================= */}
 
-                <section className="invoice-form-section">
-                    <div className="invoice-section-heading">
+                <section className="edit-invoice-form-section">
+                    <div className="edit-invoice-section-heading">
                         <span>01</span>
 
                         <div>
@@ -1056,8 +1054,8 @@ export default function EditInvoice() {
                         </div>
                     </div>
 
-                    <div className="invoice-form-grid two-column">
-                        <div className="invoice-field">
+                    <div className="edit-invoice-form-grid edit-invoice-two-column">
+                        <div className="edit-invoice-field">
                             <label htmlFor="client_id">
                                 Client{" "}
                                 <span>*</span>
@@ -1098,15 +1096,15 @@ export default function EditInvoice() {
 
                             {clients.length ===
                                 0 && (
-                                <small className="invoice-field-help">
-                                    No clients are
-                                    currently
-                                    available.
-                                </small>
-                            )}
+                                    <small className="edit-invoice-field-help">
+                                        No clients are
+                                        currently
+                                        available.
+                                    </small>
+                                )}
                         </div>
 
-                        <div className="invoice-field">
+                        <div className="edit-invoice-field">
                             <label htmlFor="booking_id">
                                 Booking{" "}
                                 <span>*</span>
@@ -1156,7 +1154,7 @@ export default function EditInvoice() {
                                 )}
                             </select>
 
-                            <small className="invoice-field-help">
+                            <small className="edit-invoice-field-help">
                                 Only bookings
                                 belonging to the
                                 selected client are
@@ -1170,8 +1168,8 @@ export default function EditInvoice() {
                     SECTION 02
                 ========================= */}
 
-                <section className="invoice-form-section">
-                    <div className="invoice-section-heading">
+                <section className="edit-invoice-form-section">
+                    <div className="edit-invoice-section-heading">
                         <span>02</span>
 
                         <div>
@@ -1187,8 +1185,8 @@ export default function EditInvoice() {
                         </div>
                     </div>
 
-                    <div className="invoice-form-grid four-column">
-                        <div className="invoice-field">
+                    <div className="edit-invoice-form-grid edit-invoice-four-column">
+                        <div className="edit-invoice-field">
                             <label htmlFor="invoice_number">
                                 Invoice Number{" "}
                                 <span>*</span>
@@ -1209,7 +1207,7 @@ export default function EditInvoice() {
                             />
                         </div>
 
-                        <div className="invoice-field">
+                        <div className="edit-invoice-field">
                             <label htmlFor="issue_date">
                                 Issue Date{" "}
                                 <span>*</span>
@@ -1229,7 +1227,7 @@ export default function EditInvoice() {
                             />
                         </div>
 
-                        <div className="invoice-field">
+                        <div className="edit-invoice-field">
                             <label htmlFor="due_date">
                                 Due Date
                             </label>
@@ -1250,7 +1248,7 @@ export default function EditInvoice() {
                             />
                         </div>
 
-                        <div className="invoice-field">
+                        <div className="edit-invoice-field">
                             <label htmlFor="status">
                                 Status
                             </label>
@@ -1293,8 +1291,8 @@ export default function EditInvoice() {
                     SECTION 03
                 ========================= */}
 
-                <section className="invoice-form-section">
-                    <div className="invoice-section-heading">
+                <section className="edit-invoice-form-section">
+                    <div className="edit-invoice-section-heading">
                         <span>03</span>
 
                         <div>
@@ -1310,8 +1308,8 @@ export default function EditInvoice() {
                         </div>
                     </div>
 
-                    <div className="invoice-items">
-                        <div className="invoice-item-header">
+                    <div className="edit-invoice-items">
+                        <div className="edit-invoice-item-header">
                             <span>
                                 Service
                             </span>
@@ -1347,13 +1345,13 @@ export default function EditInvoice() {
 
                                 return (
                                     <div
-                                        className="invoice-item-row"
+                                        className="edit-invoice-item-row"
                                         key={
                                             item.invoice_item_id ||
                                             index
                                         }
                                     >
-                                        <div className="invoice-item-mobile-label">
+                                        <div className="edit-invoice-item-mobile-label">
                                             Service
                                         </div>
 
@@ -1396,7 +1394,7 @@ export default function EditInvoice() {
                                             )}
                                         </select>
 
-                                        <div className="invoice-item-mobile-label">
+                                        <div className="edit-invoice-item-mobile-label">
                                             Description
                                         </div>
 
@@ -1422,7 +1420,7 @@ export default function EditInvoice() {
                                             }
                                         />
 
-                                        <div className="invoice-item-mobile-label">
+                                        <div className="edit-invoice-item-mobile-label">
                                             Quantity
                                         </div>
 
@@ -1446,11 +1444,11 @@ export default function EditInvoice() {
                                             }
                                         />
 
-                                        <div className="invoice-item-mobile-label">
+                                        <div className="edit-invoice-item-mobile-label">
                                             Unit Price
                                         </div>
 
-                                        <div className="invoice-price-input">
+                                        <div className="edit-invoice-price-input">
                                             <span>
                                                 $
                                             </span>
@@ -1477,11 +1475,11 @@ export default function EditInvoice() {
                                             />
                                         </div>
 
-                                        <div className="invoice-item-mobile-label">
+                                        <div className="edit-invoice-item-mobile-label">
                                             Subtotal
                                         </div>
 
-                                        <strong className="invoice-item-subtotal">
+                                        <strong className="edit-invoice-item-subtotal">
                                             {formatCurrency(
                                                 itemSubtotal
                                             )}
@@ -1489,16 +1487,15 @@ export default function EditInvoice() {
 
                                         <button
                                             type="button"
-                                            className="remove-item-button"
+                                            className="edit-invoice-remove-item-button"
                                             onClick={() =>
                                                 removeItem(
                                                     index
                                                 )
                                             }
-                                            aria-label={`Remove invoice item ${
-                                                index +
+                                            aria-label={`Remove invoice item ${index +
                                                 1
-                                            }`}
+                                                }`}
                                         >
                                             ×
                                         </button>
@@ -1510,7 +1507,7 @@ export default function EditInvoice() {
 
                     <button
                         type="button"
-                        className="add-item-button"
+                        className="edit-invoice-add-item-button"
                         onClick={addItem}
                     >
                         + Add Invoice Item
@@ -1521,8 +1518,8 @@ export default function EditInvoice() {
                     SECTION 04
                 ========================= */}
 
-                <section className="invoice-form-section invoice-totals-section">
-                    <div className="invoice-section-heading">
+                <section className="edit-invoice-form-section edit-invoice-totals-section">
+                    <div className="edit-invoice-section-heading">
                         <span>04</span>
 
                         <div>
@@ -1538,9 +1535,9 @@ export default function EditInvoice() {
                         </div>
                     </div>
 
-                    <div className="invoice-totals-content">
-                        <div className="invoice-tax-settings">
-                            <div className="invoice-field">
+                    <div className="edit-invoice-totals-content">
+                        <div className="edit-invoice-tax-settings">
+                            <div className="edit-invoice-field">
                                 <label htmlFor="tax_rate">
                                     GST Rate (%)
                                 </label>
@@ -1560,25 +1557,24 @@ export default function EditInvoice() {
                                     }
                                 />
 
-                                <span className="invoice-field-help">
+                                <span className="edit-invoice-field-help">
                                     The GST rate
                                     applied to this
                                     invoice.
                                 </span>
                             </div>
 
-                            <div className="invoice-field">
+                            <div className="edit-invoice-field">
                                 <label>
                                     GST Pricing
                                 </label>
 
-                                <div className="tax-options">
+                                <div className="edit-invoice-tax-options">
                                     <label
-                                        className={`tax-option ${
-                                            !formData.tax_included
-                                                ? "selected"
+                                        className={`edit-invoice-tax-option ${!formData.tax_included
+                                                ? "edit-invoice-selected"
                                                 : ""
-                                        }`}
+                                            }`}
                                     >
                                         <input
                                             type="radio"
@@ -1612,11 +1608,10 @@ export default function EditInvoice() {
                                     </label>
 
                                     <label
-                                        className={`tax-option ${
-                                            formData.tax_included
-                                                ? "selected"
+                                        className={`edit-invoice-tax-option ${formData.tax_included
+                                                ? "edit-invoice-selected"
                                                 : ""
-                                        }`}
+                                            }`}
                                     >
                                         <input
                                             type="radio"
@@ -1651,8 +1646,8 @@ export default function EditInvoice() {
                             </div>
                         </div>
 
-                        <div className="invoice-totals">
-                            <div className="invoice-total-row">
+                        <div className="edit-invoice-totals">
+                            <div className="edit-invoice-total-row">
                                 <span>
                                     Subtotal
                                 </span>
@@ -1664,7 +1659,7 @@ export default function EditInvoice() {
                                 </strong>
                             </div>
 
-                            <div className="invoice-total-row">
+                            <div className="edit-invoice-total-row">
                                 <span>
                                     GST (
                                     {Number(
@@ -1685,7 +1680,7 @@ export default function EditInvoice() {
                                 </strong>
                             </div>
 
-                            <div className="invoice-total-row grand-total">
+                            <div className="edit-invoice-total-row edit-invoice-grand-total">
                                 <span>
                                     Total
                                 </span>
@@ -1704,8 +1699,8 @@ export default function EditInvoice() {
                     SECTION 05
                 ========================= */}
 
-                <section className="invoice-form-section">
-                    <div className="invoice-section-heading">
+                <section className="edit-invoice-form-section">
+                    <div className="edit-invoice-section-heading">
                         <span>05</span>
 
                         <div>
@@ -1721,7 +1716,7 @@ export default function EditInvoice() {
                         </div>
                     </div>
 
-                    <div className="invoice-field">
+                    <div className="edit-invoice-field">
                         <label htmlFor="notes">
                             Invoice Notes
                         </label>
@@ -1745,10 +1740,10 @@ export default function EditInvoice() {
                     ACTIONS
                 ========================= */}
 
-                <div className="new-invoice-actions">
+                <div className="edit-invoice-actions">
                     <button
                         type="button"
-                        className="invoice-action secondary"
+                        className="edit-invoice-action edit-invoice-secondary"
                         onClick={() =>
                             navigate(
                                 `/photographer/invoices/${invoice_id}`
@@ -1761,7 +1756,7 @@ export default function EditInvoice() {
 
                     <button
                         type="submit"
-                        className="invoice-action primary"
+                        className="edit-invoice-action edit-invoice-primary"
                         disabled={saving}
                     >
                         {saving

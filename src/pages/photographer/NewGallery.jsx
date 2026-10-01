@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import "./Galleries.css";
@@ -41,6 +41,7 @@ function formatTime(time) {
 
 export default function NewGallery() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
   const [clients, setClients] = useState([]);
@@ -62,6 +63,17 @@ export default function NewGallery() {
     is_published: false,
     allow_downloads: true,
   });
+
+  /*
+   * Optional booking/client preselection.
+   *
+   * BookingDetails.jsx passes these values when the photographer
+   * chooses Create Gallery from a booking. They are still validated
+   * against the photographer's RLS-protected client/booking data
+   * before being applied.
+   */
+  const requestedClientId = searchParams.get("client_id") || "";
+  const requestedBookingId = searchParams.get("booking_id") || "";
 
   /*
    * Load photographer, clients, bookings and existing galleries.
@@ -220,6 +232,59 @@ export default function NewGallery() {
         .filter(Boolean)
     );
   }, [existingGalleries]);
+
+  /*
+   * Apply a client/booking passed from Booking Details once all of
+   * the photographer's data has loaded.
+   *
+   * If the booking is invalid, belongs to another client, or already
+   * has a gallery, nothing is preselected.
+   */
+  useEffect(() => {
+    if (loading || !requestedClientId || !requestedBookingId) {
+      return;
+    }
+
+    const validClient = clients.some(
+      (client) => client.client_id === requestedClientId
+    );
+
+    const validBooking = bookings.find(
+      (booking) =>
+        booking.booking_id === requestedBookingId &&
+        booking.client_id === requestedClientId
+    );
+
+    const alreadyHasGallery = existingGalleries.some(
+      (gallery) => gallery.booking_id === requestedBookingId
+    );
+
+    if (!validClient || !validBooking || alreadyHasGallery) {
+      return;
+    }
+
+    setFormData((current) => {
+      if (
+        current.client_id === requestedClientId &&
+        current.booking_id === requestedBookingId
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        client_id: requestedClientId,
+        booking_id: requestedBookingId,
+      };
+    });
+  }, [
+    loading,
+    requestedClientId,
+    requestedBookingId,
+    clients,
+    bookings,
+    existingGalleries,
+  ]);
 
   /*
    * Create a lookup map for client profiles.

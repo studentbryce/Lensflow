@@ -307,3 +307,110 @@
   }
 
 }
+
+/* =========================================================
+   Password Recovery
+========================================================= */
+
+.login-password-help {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -9px;
+}
+
+.login-password-help a {
+  color: var(--text);
+  font-family: "Open Sans", sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-decoration: none;
+}
+
+.login-password-help a:hover {
+  color: var(--accent);
+}
+
+.login-success {
+  padding: 11px 13px;
+  border: 1px solid var(--accent-border);
+  border-radius: 7px;
+  background: var(--accent-bg);
+  color: var(--text-h);
+  font-family: "Open Sans", sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   Account signup options
+========================================================= */
+
+.login-account-links {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.login-account-links p {
+  margin: 7px 0;
+  color: var(--text);
+  font-family: "Cormorant Garamond", serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.login-account-links a {
+  color: var(--accent);
+  font-family: "Open Sans", sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+}
+
+.login-account-links a:hover {
+  text-decoration: underline;
+}
+
+.login-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  outline: none;
+  background: var(--bg);
+  color: var(--text-h);
+  font-family: "Open Sans", sans-serif;
+  font-size: 12px;
+}
+
+.login-field select:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.login-field-note {
+  color: var(--text);
+  font-family: "Cormorant Garamond", serif;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.login-card-wide {
+  width: min(100%, 560px);
+}
+
+.login-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 560px) {
+  .login-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

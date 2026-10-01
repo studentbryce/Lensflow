@@ -119,6 +119,20 @@
     margin: 0;
 }
 
+.dashboard-view-all {
+    flex-shrink: 0;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-heading);
+    font: 11px var(--font-navigation);
+    text-decoration: none;
+}
+
+.dashboard-view-all:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent-dark);
+}
+
 
 /* ------------------------------------------------------------
    BOOKINGS
@@ -361,27 +375,23 @@
     border-bottom: none;
 }
 
-
 .client-gallery-icon {
     display: flex;
-
+    flex: 0 0 51px;
     align-items: center;
-
     justify-content: center;
-
-    flex-shrink: 0;
-
-    width: 46px;
-
-    height: 46px;
-
-    border-radius: 8px;
-
+    width: 51px;
+    height: 47px;
+    border: 1px solid var(--color-border-light);
+    border-radius: 4px;
     background: var(--accent-bg);
+    color: var(--color-muted);
+}
 
-    color: var(--accent);
-
-    font-size: 18px;
+.client-gallery-icon svg {
+    width: 24px;
+    height: 24px;
+    margin-top: 8px;
 }
 
 
@@ -673,7 +683,9 @@
    PHOTOGRAPHER PAGE VISUAL PARITY
    ------------------------------------------------------------ */
 
-.dashboard-page:not(.photographer-dashboard) { box-sizing: border-box; }
+.dashboard-page:not(.photographer-dashboard) {
+    box-sizing: border-box;
+}
 
 .dashboard-page:not(.photographer-dashboard) .client-welcome {
     margin-bottom: 24px;
@@ -735,7 +747,10 @@
     text-align: center;
 }
 
-.dashboard-page:not(.photographer-dashboard) .booking-date strong { font: 600 13px var(--font-heading); }
+.dashboard-page:not(.photographer-dashboard) .booking-date strong {
+    font: 600 13px var(--font-heading);
+}
+
 .dashboard-page:not(.photographer-dashboard) .booking-date span {
     margin-top: 0;
     font: 10px var(--font-navigation);
@@ -750,10 +765,20 @@
     white-space: nowrap;
 }
 
-.dashboard-page:not(.photographer-dashboard) .booking-client span { font: 12px var(--font-body); }
-.dashboard-page:not(.photographer-dashboard) .booking-amount { font: 600 13px var(--font-navigation); }
+.dashboard-page:not(.photographer-dashboard) .booking-client span {
+    font: 12px var(--font-body);
+}
+
+.dashboard-page:not(.photographer-dashboard) .booking-amount {
+    font: 600 13px var(--font-navigation);
+}
 
 @media (max-width: 560px) {
-    .dashboard-page:not(.photographer-dashboard) { padding: 12px 12px 40px; }
-    .dashboard-page:not(.photographer-dashboard) .dashboard-section { padding: 16px; }
+    .dashboard-page:not(.photographer-dashboard) {
+        padding: 12px 12px 40px;
+    }
+
+    .dashboard-page:not(.photographer-dashboard) .dashboard-section {
+        padding: 16px;
+    }
 }

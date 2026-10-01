@@ -60,6 +60,7 @@ export default function InvoiceDetails() {
     const [clientProfile, setClientProfile] = useState(null);
     const [booking, setBooking] = useState(null);
     const [service, setService] = useState(null);
+    const [photographerProfile, setPhotographerProfile] = useState(null);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -109,6 +110,11 @@ export default function InvoiceDetails() {
                     subtotal,
                     tax_rate,
                     tax_included,
+                    tax_number,
+                    bank_account_name,
+                    bank_name,
+                    bank_account_number,
+                    bank_payment_instructions,
                     tax_amount,
                     total_amount,
                     status,
@@ -128,6 +134,29 @@ export default function InvoiceDetails() {
             }
 
             setInvoice(invoiceData);
+
+            const {
+                data: photographerData,
+                error: photographerError,
+            } = await supabase
+                .from("photographer_profiles")
+                .select(`
+                    photographer_id,
+                    business_name
+                `)
+                .eq(
+                    "photographer_id",
+                    invoiceData.photographer_id
+                )
+                .maybeSingle();
+
+            if (photographerError) {
+                throw photographerError;
+            }
+
+            setPhotographerProfile(
+                photographerData || null
+            );
 
             /*
              * =========================================
@@ -679,6 +708,16 @@ export default function InvoiceDetails() {
                                         : "No due date"}
                                 </strong>
                             </div>
+
+                            {invoice.tax_number && (
+                                <div>
+                                    <span>GST / Tax Number</span>
+
+                                    <strong>
+                                        {invoice.tax_number}
+                                    </strong>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -897,6 +936,46 @@ export default function InvoiceDetails() {
                             </div>
                         </div>
                     </div>
+
+                    {invoice.bank_account_name &&
+                        invoice.bank_account_number && (
+                            <section className="invoice-payment-section">
+                                <span className="invoice-info-label">
+                                    Bank Transfer Details
+                                </span>
+
+                                <div className="invoice-payment-details">
+                                    <div>
+                                        <span>Account Name</span>
+                                        <strong>
+                                            {invoice.bank_account_name}
+                                        </strong>
+                                    </div>
+
+                                    {invoice.bank_name && (
+                                        <div>
+                                            <span>Bank</span>
+                                            <strong>
+                                                {invoice.bank_name}
+                                            </strong>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <span>Account Number</span>
+                                        <strong>
+                                            {invoice.bank_account_number}
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                {invoice.bank_payment_instructions && (
+                                    <p>
+                                        {invoice.bank_payment_instructions}
+                                    </p>
+                                )}
+                            </section>
+                        )}
 
                     {/* Notes */}
 

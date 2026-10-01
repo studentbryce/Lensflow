@@ -13,6 +13,7 @@ import {
   BiLockAlt,
   BiLogOut,
   BiRefresh,
+  BiReceipt,
   BiSave,
   BiShield,
   BiUser,
@@ -36,6 +37,11 @@ const SETTINGS_SECTIONS = [
     id: "business",
     label: "Business Profile",
     icon: BiBuilding,
+  },
+  {
+    id: "tax",
+    label: "Tax & GST",
+    icon: BiReceipt,
   },
   {
     id: "notifications",
@@ -136,6 +142,48 @@ export default function Settings() {
     useState("");
 
   const [businessError, setBusinessError] =
+    useState("");
+
+
+  /* =========================================================
+     Tax state
+     ========================================================= */
+
+  const [taxForm, setTaxForm] =
+    useState({
+      gst_tax_number: "",
+      default_tax_rate: "15",
+    });
+
+  const [savingTax, setSavingTax] =
+    useState(false);
+
+  const [taxMessage, setTaxMessage] =
+    useState("");
+
+  const [taxError, setTaxError] =
+    useState("");
+
+
+  /* =========================================================
+     Payment details state
+     ========================================================= */
+
+  const [paymentForm, setPaymentForm] =
+    useState({
+      bank_account_name: "",
+      bank_name: "",
+      bank_account_number: "",
+      bank_payment_instructions: "",
+    });
+
+  const [savingPayments, setSavingPayments] =
+    useState(false);
+
+  const [paymentMessage, setPaymentMessage] =
+    useState("");
+
+  const [paymentError, setPaymentError] =
     useState("");
 
 
@@ -328,6 +376,53 @@ export default function Settings() {
 
         description:
           photographerData.description || "",
+      });
+
+      const {
+        data: paymentData,
+        error: paymentError,
+      } = await supabase
+        .from("photographer_payment_settings")
+        .select(`
+          bank_account_name,
+          bank_name,
+          bank_account_number,
+          bank_payment_instructions,
+          gst_tax_number,
+          default_tax_rate
+        `)
+        .eq(
+          "photographer_id",
+          photographerData.photographer_id
+        )
+        .maybeSingle();
+
+      if (paymentError) {
+        throw paymentError;
+      }
+
+      setTaxForm({
+        gst_tax_number:
+          paymentData?.gst_tax_number || "",
+
+        default_tax_rate:
+          String(
+            paymentData?.default_tax_rate ?? 15
+          ),
+      });
+
+      setPaymentForm({
+        bank_account_name:
+          paymentData?.bank_account_name || "",
+
+        bank_name:
+          paymentData?.bank_name || "",
+
+        bank_account_number:
+          paymentData?.bank_account_number || "",
+
+        bank_payment_instructions:
+          paymentData?.bank_payment_instructions || "",
       });
 
 
@@ -770,6 +865,240 @@ export default function Settings() {
 
     } finally {
       setSavingBusiness(false);
+    }
+  }
+
+
+  /* =========================================================
+     Tax handlers
+     ========================================================= */
+
+  function handleTaxChange(event) {
+    const {
+      name,
+      value,
+    } = event.target;
+
+    setTaxForm(
+      (current) => ({
+        ...current,
+        [name]: value,
+      })
+    );
+
+    setTaxMessage("");
+    setTaxError("");
+  }
+
+
+  async function handleSaveTax(event) {
+    event.preventDefault();
+
+    const gstTaxNumber =
+      taxForm.gst_tax_number.trim();
+
+    const defaultTaxRate =
+      Number(taxForm.default_tax_rate);
+
+    if (
+      !Number.isFinite(defaultTaxRate) ||
+      defaultTaxRate < 0 ||
+      defaultTaxRate > 100
+    ) {
+      setTaxError(
+        "The default tax rate must be between 0% and 100%."
+      );
+
+      return;
+    }
+
+    if (!photographerId) {
+      setTaxError(
+        "Photographer profile could not be found."
+      );
+
+      return;
+    }
+
+    try {
+      setSavingTax(true);
+      setTaxMessage("");
+      setTaxError("");
+
+      const {
+        error: updateError,
+      } = await supabase
+        .from("photographer_payment_settings")
+        .upsert({
+          photographer_id: photographerId,
+          gst_tax_number:
+            gstTaxNumber || null,
+
+          default_tax_rate:
+            Number(defaultTaxRate.toFixed(2)),
+        }, {
+          onConflict: "photographer_id",
+        });
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setTaxForm({
+        gst_tax_number: gstTaxNumber,
+        default_tax_rate:
+          String(
+            Number(defaultTaxRate.toFixed(2))
+          ),
+      });
+
+      setTaxMessage(
+        "Tax settings updated successfully."
+      );
+
+    } catch (error) {
+      console.error(
+        "Unable to update tax settings:",
+        error
+      );
+
+      setTaxError(
+        error.message ||
+        "Your tax settings could not be updated."
+      );
+
+    } finally {
+      setSavingTax(false);
+    }
+  }
+
+
+  /* =========================================================
+     Payment details handlers
+     ========================================================= */
+
+  function handlePaymentChange(event) {
+    const {
+      name,
+      value,
+    } = event.target;
+
+    setPaymentForm(
+      (current) => ({
+        ...current,
+        [name]: value,
+      })
+    );
+
+    setPaymentMessage("");
+    setPaymentError("");
+  }
+
+
+  async function handleSavePayments(event) {
+    event.preventDefault();
+
+    const paymentDetails = {
+      bank_account_name:
+        paymentForm.bank_account_name.trim(),
+      bank_name:
+        paymentForm.bank_name.trim(),
+      bank_account_number:
+        paymentForm.bank_account_number.trim(),
+      bank_payment_instructions:
+        paymentForm.bank_payment_instructions.trim(),
+    };
+
+    const hasPaymentDetails =
+      Object.values(paymentDetails).some(Boolean);
+
+    if (
+      hasPaymentDetails &&
+      (!paymentDetails.bank_account_name ||
+        !paymentDetails.bank_account_number)
+    ) {
+      setPaymentError(
+        "Enter both an account name and account number, or leave all bank fields blank."
+      );
+
+      return;
+    }
+
+    if (!photographerId) {
+      setPaymentError(
+        "Photographer profile could not be found."
+      );
+
+      return;
+    }
+
+    try {
+      setSavingPayments(true);
+      setPaymentMessage("");
+      setPaymentError("");
+
+      const {
+        error: updateError,
+      } = await supabase
+        .from("photographer_payment_settings")
+        .upsert({
+          photographer_id: photographerId,
+          bank_account_name:
+            paymentDetails.bank_account_name || null,
+          bank_name:
+            paymentDetails.bank_name || null,
+          bank_account_number:
+            paymentDetails.bank_account_number || null,
+          bank_payment_instructions:
+            paymentDetails.bank_payment_instructions || null,
+        }, {
+          onConflict: "photographer_id",
+        });
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      const {
+        error: invoiceUpdateError,
+      } = await supabase
+        .from("invoices")
+        .update({
+          bank_account_name:
+            paymentDetails.bank_account_name || null,
+          bank_name:
+            paymentDetails.bank_name || null,
+          bank_account_number:
+            paymentDetails.bank_account_number || null,
+          bank_payment_instructions:
+            paymentDetails.bank_payment_instructions || null,
+        })
+        .eq("photographer_id", photographerId);
+
+      if (invoiceUpdateError) {
+        throw invoiceUpdateError;
+      }
+
+      setPaymentForm(paymentDetails);
+      setPaymentMessage(
+        hasPaymentDetails
+          ? "Bank account details updated successfully."
+          : "Bank account details removed successfully."
+      );
+
+    } catch (error) {
+      console.error(
+        "Unable to update bank account details:",
+        error
+      );
+
+      setPaymentError(
+        error.message ||
+        "Your bank account details could not be updated."
+      );
+
+    } finally {
+      setSavingPayments(false);
     }
   }
 
@@ -1352,6 +1681,106 @@ export default function Settings() {
   }
 
 
+  function renderTaxSection() {
+    return (
+      <>
+        <div className="settings-section-heading">
+          <div>
+            <span className="settings-section-eyebrow">
+              Invoice defaults
+            </span>
+
+            <h2>
+              Tax &amp; GST
+            </h2>
+
+            <p>
+              Set the tax registration number shown on
+              invoices and the default tax rate used for
+              new invoices.
+            </p>
+          </div>
+
+          <div className="settings-heading-icon">
+            <BiReceipt aria-hidden="true" />
+          </div>
+        </div>
+
+        <form
+          className="settings-form"
+          onSubmit={handleSaveTax}
+        >
+          <div className="settings-form-grid">
+            <div className="settings-field settings-field--full">
+              <label htmlFor="settings-gst-tax-number">
+                GST / Tax number
+              </label>
+
+              <input
+                id="settings-gst-tax-number"
+                name="gst_tax_number"
+                type="text"
+                value={taxForm.gst_tax_number}
+                onChange={handleTaxChange}
+                maxLength="100"
+                placeholder="For example, 123-456-789"
+              />
+
+              <span className="settings-field-help">
+                This number is copied onto each new invoice.
+                Leave it blank if your business is not tax
+                registered.
+              </span>
+            </div>
+
+            <div className="settings-field">
+              <label htmlFor="settings-default-tax-rate">
+                Default tax rate (%)
+              </label>
+
+              <input
+                id="settings-default-tax-rate"
+                name="default_tax_rate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={taxForm.default_tax_rate}
+                onChange={handleTaxChange}
+                required
+              />
+
+              <span className="settings-field-help">
+                New invoices will start with this rate. You
+                can still change it on an individual invoice.
+              </span>
+            </div>
+          </div>
+
+          {renderStatusMessage(
+            taxMessage,
+            taxError
+          )}
+
+          <div className="settings-form-actions">
+            <button
+              type="submit"
+              className="settings-primary-button"
+              disabled={savingTax}
+            >
+              <BiSave aria-hidden="true" />
+
+              {savingTax
+                ? "Saving..."
+                : "Save Tax Settings"}
+            </button>
+          </div>
+        </form>
+      </>
+    );
+  }
+
+
   function renderNotificationsSection() {
     return (
       <>
@@ -1469,6 +1898,100 @@ export default function Settings() {
             />
           </div>
         </div>
+
+
+        <form
+          className="settings-form"
+          onSubmit={handleSavePayments}
+        >
+          <div className="settings-form-grid">
+            <div className="settings-field">
+              <label htmlFor="settings-bank-account-name">
+                Account name
+              </label>
+
+              <input
+                id="settings-bank-account-name"
+                name="bank_account_name"
+                type="text"
+                maxLength="150"
+                value={paymentForm.bank_account_name}
+                onChange={handlePaymentChange}
+                placeholder="LensFlow Photography Ltd"
+              />
+            </div>
+
+            <div className="settings-field">
+              <label htmlFor="settings-bank-name">
+                Bank name
+              </label>
+
+              <input
+                id="settings-bank-name"
+                name="bank_name"
+                type="text"
+                maxLength="150"
+                value={paymentForm.bank_name}
+                onChange={handlePaymentChange}
+                placeholder="Your bank"
+              />
+            </div>
+
+            <div className="settings-field settings-field--full">
+              <label htmlFor="settings-bank-account-number">
+                Account number
+              </label>
+
+              <input
+                id="settings-bank-account-number"
+                name="bank_account_number"
+                type="text"
+                maxLength="100"
+                value={paymentForm.bank_account_number}
+                onChange={handlePaymentChange}
+                placeholder="00-0000-0000000-00"
+              />
+
+              <span className="settings-field-help">
+                The account name and number will be shown on new invoices.
+              </span>
+            </div>
+
+            <div className="settings-field settings-field--full">
+              <label htmlFor="settings-bank-payment-instructions">
+                Payment instructions
+              </label>
+
+              <textarea
+                id="settings-bank-payment-instructions"
+                name="bank_payment_instructions"
+                rows="4"
+                value={paymentForm.bank_payment_instructions}
+                onChange={handlePaymentChange}
+                placeholder="For example, use the invoice number as your payment reference."
+              />
+            </div>
+          </div>
+
+          {renderStatusMessage(
+            paymentMessage,
+            paymentError
+          )}
+
+          <div className="settings-form-actions">
+            <button
+              type="submit"
+              className="settings-primary-button"
+              disabled={savingPayments}
+            >
+              <BiSave aria-hidden="true" />
+
+              {savingPayments
+                ? "Saving..."
+                : "Save Bank Details"}
+            </button>
+          </div>
+        </form>
 
 
         <div className="settings-integration-card">
@@ -1910,6 +2433,9 @@ export default function Settings() {
     switch (activeSection) {
       case "business":
         return renderBusinessSection();
+
+      case "tax":
+        return renderTaxSection();
 
       case "notifications":
         return renderNotificationsSection();

@@ -83,14 +83,17 @@ export default function SignUp() {
       {message ? <p role="status">{message}</p> : loading ? <p role="status">Loading photographers…</p> : loadError ? <div role="alert"><p>{loadError}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Try again</button></div> : photographers.length === 0 ? <p>No photographers are accepting online sign-ups yet. Please contact your photographer for access.</p> : <form className="login-form" onSubmit={submit}>
         <div className="login-field"><label htmlFor="signup-first">First name</label><input id="signup-first" autoComplete="given-name" required maxLength={100} value={firstName} onChange={(event) => setFirstName(event.target.value)} disabled={saving} /></div>
         <div className="login-field"><label htmlFor="signup-last">Last name</label><input id="signup-last" autoComplete="family-name" required maxLength={100} value={lastName} onChange={(event) => setLastName(event.target.value)} disabled={saving} /></div>
-        <div className="login-field"><label htmlFor="signup-photographer">Your photographer</label><select id="signup-photographer" required value={photographerId} onChange={(event) => setPhotographerId(event.target.value)} disabled={saving}><option value="">Select your photographer</option>{photographers.map((item) => <option key={item.photographer_id} value={item.photographer_id}>{item.business_name}</option>)}</select></div>
+        <div className="login-field"><label htmlFor="signup-photographer">Your photographer</label><select id="signup-photographer" required value={photographerId} onChange={(event) => setPhotographerId(event.target.value)} disabled={saving}><option value="">Select your photographer</option>{photographers.map((item) => <option key={item.photographer_id} value={item.photographer_id}>{item.business_name}</option>)}</select><small className="login-field-note">Only photographers with a published LensFlow website are available for online client signup.</small></div>
         <div className="login-field"><label htmlFor="signup-email">Email</label><input id="signup-email" type="email" autoComplete="email" required maxLength={255} value={email} onChange={(event) => setEmail(event.target.value)} disabled={saving} /></div>
         <div className="login-field"><label htmlFor="signup-password">Password (at least 8 characters)</label><input id="signup-password" type="password" autoComplete="new-password" required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} disabled={saving} /></div>
         <div className="login-field"><label htmlFor="signup-confirm">Confirm password</label><input id="signup-confirm" type="password" autoComplete="new-password" required minLength={8} value={confirm} onChange={(event) => setConfirm(event.target.value)} disabled={saving} /></div>
         {error && <p className="login-error" role="alert">{error}</p>}
         <button type="submit" className="login-submit" disabled={saving}>{saving ? "Creating account…" : "Create Account"}</button>
       </form>}
-      <p>Already have an account? <Link to="/login" state={location.state}>Sign in</Link></p>
+      <div className="login-account-links">
+        <p>Already have an account? <Link to="/login" state={location.state}>Sign in</Link></p>
+        <p>Are you a photographer? <Link to="/signup/photographer">Create a photographer account</Link></p>
+      </div>
     </section>
   </main>;
 }

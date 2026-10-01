@@ -117,10 +117,18 @@ export default function Home() {
             <button
               type="button"
               className="home-primary-button"
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/signup/photographer")}
             >
-              Sign In
+              Create Photographer Account
               <span>→</span>
+            </button>
+
+            <button
+              type="button"
+              className="home-secondary-button"
+              onClick={() => navigate("/signup")}
+            >
+              Client Sign Up
             </button>
 
           </div>

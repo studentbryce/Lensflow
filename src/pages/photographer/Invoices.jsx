@@ -439,10 +439,11 @@ export default function Invoices() {
 
         <button
           type="button"
-          className="new-invoice-button"
+          className="primary-button"
           onClick={() => navigate("/photographer/invoices/new")}
         >
-          + New Invoice
+          <span>+</span>
+          New Invoice
         </button>
       </header>
 

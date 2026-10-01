@@ -220,7 +220,7 @@
   border: 1px solid var(--border);
   border-radius: 9px;
   outline: none;
-  background: var(--bg);
+  background: var(--color-surface);
   color: var(--text-h);
   font: inherit;
   font-size: 0.8rem;

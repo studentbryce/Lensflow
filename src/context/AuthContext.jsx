@@ -6,7 +6,7 @@ import {
 } from 'react';
 
 import { supabase } from '../lib/supabaseClient';
-import { completeClientSignup } from '../lib/completeClientSignup';
+import { completeAccountSignup } from '../lib/completeAccountSignup';
 
 const AuthContext = createContext();
 
@@ -18,9 +18,9 @@ export function AuthProvider({ children }) {
 
   async function loadProfile(userId) {
     try {
-      await completeClientSignup(userId);
+      await completeAccountSignup(userId);
     } catch (error) {
-      console.error('Client account setup failed:', error);
+      console.error('Account setup failed:', error);
     }
     const { data, error } = await supabase
       .from('profiles')
@@ -101,6 +101,18 @@ export function AuthProvider({ children }) {
     });
   }
 
+  async function requestPasswordReset(email) {
+    return await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+  }
+
+  async function updatePassword(password) {
+    return await supabase.auth.updateUser({
+      password,
+    });
+  }
+
   async function signOut() {
     return await supabase.auth.signOut();
   }
@@ -112,6 +124,8 @@ export function AuthProvider({ children }) {
     loading,
     signIn,
     signUp,
+    requestPasswordReset,
+    updatePassword,
     signOut,
   };
 

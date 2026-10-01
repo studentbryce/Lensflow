@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   BiCalendar,
   BiCog,
@@ -50,7 +50,14 @@ function PhotographerSidebar({ isOpen, onClose }) {
 
       {/* Logo / Brand */}
       <div className="sidebar-brand">
-        <img src={brandLogo} alt="LensFlow" />
+        <Link
+          to="/"
+          className="sidebar-brand-home"
+          aria-label="Go to the LensFlow home page"
+          onClick={onClose}
+        >
+          <img src={brandLogo} alt="LensFlow" />
+        </Link>
         <span>Photographer</span>
       </div>
 

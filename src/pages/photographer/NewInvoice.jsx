@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
-import "./NewEditInvoice.css";
+import "./NewInvoice.css";
 
 const EMPTY_ITEM = {
     service_id: "",
@@ -111,13 +111,35 @@ export default function NewInvoice() {
             const { data: photographer, error: photographerError } =
                 await supabase
                     .from("photographer_profiles")
-                    .select("photographer_id")
+                    .select(`
+                        photographer_id
+                    `)
                     .eq("user_id", user.id)
                     .single();
 
             if (photographerError) {
                 throw photographerError;
             }
+
+            const {
+                data: paymentSettings,
+                error: paymentSettingsError,
+            } = await supabase
+                .from("photographer_payment_settings")
+                .select("default_tax_rate")
+                .eq("photographer_id", photographer.photographer_id)
+                .maybeSingle();
+
+            if (paymentSettingsError) {
+                throw paymentSettingsError;
+            }
+
+            setFormData((current) => ({
+                ...current,
+                tax_rate: String(
+                    paymentSettings?.default_tax_rate ?? 15
+                ),
+            }));
 
             /*
              * Load clients.
@@ -232,6 +254,56 @@ export default function NewInvoice() {
             setServices(serviceData || []);
 
             /*
+             * If New Invoice was opened from Booking Details, preselect the
+             * booking and client and add the booked service as the first
+             * invoice item. The booking must exist in the RLS-filtered data
+             * returned for the current photographer before it is accepted.
+             */
+            const searchParams = new URLSearchParams(window.location.search);
+            const requestedBookingId = searchParams.get("booking_id");
+            const requestedClientId = searchParams.get("client_id");
+
+            if (requestedBookingId) {
+                const requestedBooking = (bookingData || []).find(
+                    (booking) => booking.booking_id === requestedBookingId
+                );
+
+                if (
+                    requestedBooking &&
+                    (!requestedClientId ||
+                        requestedBooking.client_id === requestedClientId)
+                ) {
+                    setFormData((current) => ({
+                        ...current,
+                        client_id: requestedBooking.client_id,
+                        booking_id: requestedBooking.booking_id,
+                    }));
+
+                    const bookedService = (serviceData || []).find(
+                        (service) =>
+                            service.service_id === requestedBooking.service_id
+                    );
+
+                    if (bookedService) {
+                        setItems([
+                            {
+                                service_id: bookedService.service_id,
+                                description:
+                                    bookedService.description ||
+                                    bookedService.name ||
+                                    "",
+                                quantity: 1,
+                                unit_price:
+                                    requestedBooking.total_amount ??
+                                    bookedService.price ??
+                                    "",
+                            },
+                        ]);
+                    }
+                }
+            }
+
+            /*
              * Confirm that the current account has a photographer profile.
              */
             if (!photographer?.photographer_id) {
@@ -320,6 +392,79 @@ export default function NewInvoice() {
 
         setError("");
         setSuccess("");
+    }
+
+    /*
+     * Selecting a booking automatically adds the service attached to that
+     * booking as an invoice item. This avoids making the photographer select
+     * the booking and then select the same service again.
+     *
+     * If the invoice still contains its original empty item, that row is
+     * replaced. If the photographer has already entered other line items, the
+     * booked service is added without removing their existing work.
+     */
+    function handleBookingChange(event) {
+        const bookingId = event.target.value;
+
+        setFormData((current) => ({
+            ...current,
+            booking_id: bookingId,
+        }));
+
+        setError("");
+        setSuccess("");
+
+        if (!bookingId) return;
+
+        const selectedBooking = selectedClientBookings.find(
+            (booking) => booking.booking_id === bookingId
+        );
+
+        if (!selectedBooking?.service_id) return;
+
+        const bookedService = services.find(
+            (service) => service.service_id === selectedBooking.service_id
+        );
+
+        if (!bookedService) {
+            setError(
+                "The booking was selected, but its service could not be loaded. You can still add the invoice item manually."
+            );
+            return;
+        }
+
+        const bookedServiceItem = {
+            service_id: bookedService.service_id,
+            description:
+                bookedService.description || bookedService.name || "",
+            quantity: 1,
+            unit_price:
+                selectedBooking.total_amount ?? bookedService.price ?? "",
+        };
+
+        setItems((current) => {
+            const alreadyAdded = current.some(
+                (item) => item.service_id === bookedService.service_id
+            );
+
+            if (alreadyAdded) return current;
+
+            const emptyItemIndex = current.findIndex((item) => {
+                const description = String(item.description || "").trim();
+                const hasPrice =
+                    item.unit_price !== "" && item.unit_price !== null;
+
+                return !item.service_id && !description && !hasPrice;
+            });
+
+            if (emptyItemIndex !== -1) {
+                return current.map((item, index) =>
+                    index === emptyItemIndex ? bookedServiceItem : item
+                );
+            }
+
+            return [...current, bookedServiceItem];
+        });
     }
 
     function handleTaxIncludedChange(value) {
@@ -517,7 +662,9 @@ export default function NewInvoice() {
             const { data: photographer, error: photographerError } =
                 await supabase
                     .from("photographer_profiles")
-                    .select("photographer_id")
+                    .select(`
+                        photographer_id
+                    `)
                     .eq("user_id", user.id)
                     .single();
 
@@ -529,6 +676,28 @@ export default function NewInvoice() {
                 throw new Error(
                     "A photographer profile could not be found."
                 );
+            }
+
+            const {
+                data: paymentSettings,
+                error: paymentSettingsError,
+            } = await supabase
+                .from("photographer_payment_settings")
+                .select(`
+                    bank_account_name,
+                    bank_name,
+                    bank_account_number,
+                    bank_payment_instructions,
+                    gst_tax_number
+                `)
+                .eq(
+                    "photographer_id",
+                    photographer.photographer_id
+                )
+                .maybeSingle();
+
+            if (paymentSettingsError) {
+                throw paymentSettingsError;
             }
 
             /*
@@ -585,6 +754,21 @@ export default function NewInvoice() {
                         ),
                         tax_included:
                             Boolean(formData.tax_included),
+                        tax_number:
+                            paymentSettings?.gst_tax_number?.trim() ||
+                            null,
+                        bank_account_name:
+                            paymentSettings?.bank_account_name?.trim() ||
+                            null,
+                        bank_name:
+                            paymentSettings?.bank_name?.trim() ||
+                            null,
+                        bank_account_number:
+                            paymentSettings?.bank_account_number?.trim() ||
+                            null,
+                        bank_payment_instructions:
+                            paymentSettings?.bank_payment_instructions?.trim() ||
+                            null,
                         tax_amount: Number(
                             taxAmount.toFixed(2)
                         ),
@@ -685,6 +869,18 @@ export default function NewInvoice() {
 
     return (
         <main className="new-invoice-page">
+            <button
+                type="button"
+                className="new-invoice-back-button new-invoice-top-back"
+                onClick={() =>
+                    navigate(
+                        "/photographer/invoices"
+                    )
+                }
+            >
+                ← Back to Invoices
+            </button>
+
             <header className="new-invoice-header">
                 <div>
                     <p className="new-invoice-eyebrow">
@@ -699,17 +895,6 @@ export default function NewInvoice() {
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    className="new-invoice-back-button"
-                    onClick={() =>
-                        navigate(
-                            "/photographer/invoices"
-                        )
-                    }
-                >
-                    ← Back to Invoices
-                </button>
             </header>
 
             {error && (
@@ -799,7 +984,7 @@ export default function NewInvoice() {
                                 id="booking_id"
                                 name="booking_id"
                                 value={formData.booking_id}
-                                onChange={handleChange}
+                                onChange={handleBookingChange}
                                 disabled={
                                     !formData.client_id
                                 }
