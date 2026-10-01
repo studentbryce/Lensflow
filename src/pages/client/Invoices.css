@@ -1051,3 +1051,71 @@
     flex-direction: column;
   }
 }
+
+
+/* =========================================================
+   SHARED INVOICE DETAIL TOOLBAR
+========================================================= */
+
+.client-invoice-detail-page {
+  max-width: 1100px;
+}
+
+.client-invoice-detail-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.client-invoice-detail-toolbar .client-invoice-back-button {
+  margin-bottom: 0;
+}
+
+.client-invoice-download-button {
+  min-height: 42px;
+  padding: 10px 17px;
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: "Open Sans", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.client-invoice-download-button:hover {
+  opacity: .92;
+  transform: translateY(-1px);
+}
+
+.client-invoice-download-button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 520px) {
+  .client-invoice-detail-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .client-invoice-download-button {
+    width: 100%;
+  }
+}
+
+.client-invoice-pdf-error {
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border-style: solid;
+  text-align: left;
+}
+
+.client-invoice-pdf-error p {
+  margin: 0;
+}

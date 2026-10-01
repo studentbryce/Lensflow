@@ -1,0 +1,430 @@
+.shared-invoice-document {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #ffffff;
+    color: var(--text);
+    box-shadow: var(--shadow);
+}
+
+.shared-invoice-document-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 36px;
+    padding: 34px 38px 30px;
+    border-bottom: 1px solid var(--border);
+}
+
+.shared-invoice-brand {
+    min-width: 0;
+}
+
+.shared-invoice-business-name {
+    display: block;
+    margin-bottom: 18px;
+    color: var(--accent);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.shared-invoice-document-label,
+.shared-invoice-info-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #85858f;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.shared-invoice-document-header h2 {
+    margin: 0;
+    color: var(--text-h);
+    font-family: "Cormorant Garamond", "Noto Serif", serif;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+.shared-invoice-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    margin-top: 12px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #f1f1f3;
+    color: #666671;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.shared-invoice-status.status-sent {
+    background: #eee9ff;
+    color: #6c4fc7;
+}
+
+.shared-invoice-status.status-paid {
+    background: #e9f7ef;
+    color: #27794f;
+}
+
+.shared-invoice-status.status-overdue {
+    background: #fff1ec;
+    color: #bd5635;
+}
+
+.shared-invoice-status.status-cancelled {
+    background: #f5e9eb;
+    color: #9b4854;
+}
+
+.shared-invoice-document-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 28px 36px;
+}
+
+.shared-invoice-document-meta div {
+    min-width: 100px;
+}
+
+.shared-invoice-document-meta span,
+.shared-invoice-payment-details span {
+    display: block;
+    margin-bottom: 5px;
+    color: #85858f;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.shared-invoice-document-meta strong {
+    color: var(--text-h);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.shared-invoice-overdue {
+    color: #bd5635 !important;
+}
+
+.shared-invoice-information-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-bottom: 1px solid var(--border);
+}
+
+.shared-invoice-info-block {
+    min-width: 0;
+    padding: 28px 38px;
+}
+
+.shared-invoice-info-block + .shared-invoice-info-block {
+    border-left: 1px solid var(--border);
+}
+
+.shared-invoice-info-block h3 {
+    margin: 0 0 6px;
+    color: var(--text-h);
+    font-family: "Noto Serif", serif;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.shared-invoice-info-block p {
+    margin: 4px 0;
+    color: #6f6f79;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.shared-invoice-booking-link {
+    display: inline-block;
+    margin-top: 9px;
+    color: var(--accent);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.shared-invoice-booking-link:hover {
+    text-decoration: underline;
+}
+
+.shared-invoice-items-section {
+    padding: 30px 38px 0;
+}
+
+.shared-invoice-section-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+
+.shared-invoice-section-heading h3 {
+    margin: 0;
+    color: var(--text-h);
+    font-family: "Noto Serif", serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.shared-invoice-section-heading > span {
+    color: var(--text);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.72rem;
+}
+
+.shared-invoice-table-scroll {
+    overflow-x: auto;
+}
+
+.shared-invoice-items-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+}
+
+.shared-invoice-items-table th {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    color: #85858f;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.shared-invoice-items-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.78rem;
+}
+
+.shared-invoice-items-table td strong {
+    color: var(--text-h);
+    font-weight: 600;
+}
+
+.shared-invoice-items-table th:not(:first-child),
+.shared-invoice-items-table td:not(:first-child) {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.shared-invoice-empty-items {
+    padding: 24px 0;
+    color: var(--text);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.8rem;
+}
+
+.shared-invoice-bottom-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    gap: 40px;
+    align-items: end;
+    padding: 30px 38px 34px;
+}
+
+.shared-invoice-tax-information {
+    max-width: 430px;
+    padding: 16px 18px;
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    background: var(--accent-bg);
+}
+
+.shared-invoice-tax-information strong {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--text-h);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.shared-invoice-tax-information p {
+    margin: 0;
+    color: #74747d;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.72rem;
+    line-height: 1.55;
+}
+
+.shared-invoice-totals {
+    margin: 0;
+}
+
+.shared-invoice-totals > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 7px 0;
+    color: #707079;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.8rem;
+}
+
+.shared-invoice-totals dt,
+.shared-invoice-totals dd {
+    margin: 0;
+}
+
+.shared-invoice-totals dd {
+    color: var(--text-h);
+    font-weight: 600;
+    text-align: right;
+}
+
+.shared-invoice-totals .shared-invoice-grand-total {
+    margin-top: 9px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    color: var(--text-h);
+    font-weight: 700;
+}
+
+.shared-invoice-grand-total dd {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.shared-invoice-payment-section,
+.shared-invoice-notes-section {
+    margin: 0 38px;
+    padding: 24px 0;
+    border-top: 1px solid var(--border);
+}
+
+.shared-invoice-payment-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 42px;
+    margin-top: 12px;
+}
+
+.shared-invoice-payment-details div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shared-invoice-payment-details strong {
+    color: var(--text-h);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.shared-invoice-payment-section p,
+.shared-invoice-notes-section p {
+    max-width: 800px;
+    margin: 16px 0 0;
+    color: #686872;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.79rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.shared-invoice-payment-help {
+    margin: 0;
+    padding: 18px 38px;
+    border-top: 1px solid var(--border);
+    background: var(--accent-bg);
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.6;
+}
+
+@media (max-width: 1050px) {
+    .shared-invoice-bottom-section {
+        grid-template-columns: 1fr;
+    }
+
+    .shared-invoice-tax-information {
+        max-width: none;
+    }
+}
+
+@media (max-width: 750px) {
+    .shared-invoice-document-header {
+        flex-direction: column;
+    }
+
+    .shared-invoice-document-meta {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .shared-invoice-information-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .shared-invoice-info-block + .shared-invoice-info-block {
+        border-top: 1px solid var(--border);
+        border-left: 0;
+    }
+}
+
+@media (max-width: 650px) {
+    .shared-invoice-document-header,
+    .shared-invoice-info-block,
+    .shared-invoice-items-section,
+    .shared-invoice-bottom-section {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .shared-invoice-payment-section,
+    .shared-invoice-notes-section {
+        margin-left: 24px;
+        margin-right: 24px;
+    }
+
+    .shared-invoice-payment-help {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .shared-invoice-document-meta {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .shared-invoice-items-section {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .shared-invoice-section-heading {
+        padding: 0 24px;
+    }
+}
