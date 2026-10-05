@@ -1672,3 +1672,38 @@ using (
         select private.current_photographer_id()
     )
 );
+
+
+-- ========================================================
+-- 62. DROP POLICY FOR CLIENTS TO CREATE THEIR OWN PAYMENT RECORDS
+-- ========================================================
+
+drop policy if exists
+    "Clients can create their own payment records"
+on public.payments;
+
+-- ========================================================
+-- 63. REVOKE INSERT, UPDATE, DELETE ON TABLE public.payments FROM AUTHENTICATED
+-- ========================================================
+
+revoke insert, update, delete
+on public.payments
+from authenticated;
+
+-- ========================================================
+-- 64. CREATE UNIQUE INDEX TO PREVENT MULTIPLE PENDING PAYMENTS FOR THE SAME INVOICE
+-- ========================================================
+
+create unique index if not exists
+    payments_one_pending_per_invoice
+on public.payments (invoice_id)
+where status = 'pending'::payment_status;
+
+-- ========================================================
+-- 65. CREATE UNIQUE INDEX TO PREVENT MULTIPLE SUCCESSFUL PAYMENTS FOR THE SAME INVOICE
+-- ========================================================
+
+create unique index if not exists
+    payments_one_successful_per_invoice
+on public.payments (invoice_id)
+where status = 'successful'::payment_status;

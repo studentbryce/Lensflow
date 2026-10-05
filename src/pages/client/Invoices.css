@@ -1119,3 +1119,63 @@
 .client-invoice-pdf-error p {
   margin: 0;
 }
+
+
+/* =========================================================
+   STRIPE CHECKOUT ACTION
+========================================================= */
+
+.client-invoice-detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.client-invoice-pay-button {
+  min-height: 42px;
+  padding: 10px 17px;
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: "Open Sans", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.client-invoice-pay-button:hover {
+  opacity: .92;
+  transform: translateY(-1px);
+}
+
+.client-invoice-pay-button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.client-invoice-payment-error {
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border-style: solid;
+  text-align: left;
+}
+
+.client-invoice-payment-error p {
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .client-invoice-detail-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .client-invoice-pay-button {
+    width: 100%;
+  }
+}

@@ -155,6 +155,10 @@ export default function Invoices() {
     const [pdfLoading, setPdfLoading] =
         useState(false);
     const [pdfError, setPdfError] = useState("");
+    const [paymentLoading, setPaymentLoading] =
+        useState(false);
+    const [paymentError, setPaymentError] =
+        useState("");
 
     useEffect(() => {
         let active = true;
@@ -398,6 +402,68 @@ export default function Invoices() {
         }
     }
 
+    async function handlePayInvoice(invoice) {
+        if (!invoice?.invoice_id) return;
+
+        try {
+            setPaymentLoading(true);
+            setPaymentError("");
+
+            const { data, error: functionError } =
+                await supabase.functions.invoke(
+                    "create-checkout-session",
+                    {
+                        body: {
+                            invoice_id:
+                                invoice.invoice_id,
+                        },
+                    }
+                );
+
+            if (functionError) {
+                let message =
+                    functionError.message ||
+                    "Unable to start secure payment.";
+
+                try {
+                    if (functionError.context) {
+                        const errorBody =
+                            await functionError.context.json();
+
+                        message =
+                            errorBody?.stripe_error ||
+                            errorBody?.error ||
+                            message;
+                    }
+                } catch {
+                    // Keep the original function error.
+                }
+
+                throw new Error(message);
+            }
+
+            if (!data?.url) {
+                throw new Error(
+                    "Stripe did not return a Checkout URL."
+                );
+            }
+
+            window.location.assign(data.url);
+        } catch (err) {
+            console.error(
+                "Unable to create Stripe Checkout Session:",
+                err
+            );
+
+            setPaymentError(
+                err.message ||
+                    "We couldn't start secure payment. Please try again."
+            );
+
+            setPaymentLoading(false);
+        }
+    }
+
     if (invoice_id) {
         const selectedInvoice = records.find(
             (invoice) =>
@@ -420,20 +486,47 @@ export default function Invoices() {
                     </button>
 
                     {selectedInvoice && (
-                        <button
-                            type="button"
-                            className="client-invoice-download-button"
-                            onClick={() =>
-                                handleDownloadPdf(
-                                    selectedInvoice
-                                )
-                            }
-                            disabled={pdfLoading}
-                        >
-                            {pdfLoading
-                                ? "Generating..."
-                                : "Download PDF"}
-                        </button>
+                        <div className="client-invoice-detail-actions">
+                            <button
+                                type="button"
+                                className="client-invoice-download-button"
+                                onClick={() =>
+                                    handleDownloadPdf(
+                                        selectedInvoice
+                                    )
+                                }
+                                disabled={
+                                    pdfLoading ||
+                                    paymentLoading
+                                }
+                            >
+                                {pdfLoading
+                                    ? "Generating..."
+                                    : "Download PDF"}
+                            </button>
+
+                            {["sent", "overdue"].includes(
+                                selectedInvoice.displayStatus
+                            ) && (
+                                <button
+                                    type="button"
+                                    className="client-invoice-pay-button"
+                                    onClick={() =>
+                                        handlePayInvoice(
+                                            selectedInvoice
+                                        )
+                                    }
+                                    disabled={
+                                        paymentLoading ||
+                                        pdfLoading
+                                    }
+                                >
+                                    {paymentLoading
+                                        ? "Opening Stripe..."
+                                        : "Pay Securely with Stripe"}
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
 
@@ -443,6 +536,15 @@ export default function Invoices() {
                         role="alert"
                     >
                         <p>{pdfError}</p>
+                    </div>
+                )}
+
+                {paymentError && (
+                    <div
+                        className="client-invoices-state client-invoice-payment-error"
+                        role="alert"
+                    >
+                        <p>{paymentError}</p>
                     </div>
                 )}
 
