@@ -1205,3 +1205,470 @@ FROM anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE
 ON TABLE public.invoice_items
 TO authenticated;
+
+
+-- ========================================================
+-- 37. CREATE TABLE FOR PHOTOGRAPHER STRIPE ACCOUNT DETAILS
+-- ========================================================
+
+create table public.photographer_stripe_accounts (
+    photographer_id uuid primary key
+        references public.photographer_profiles(photographer_id)
+        on delete cascade,
+
+    stripe_account_id varchar(255) not null unique,
+
+    charges_enabled boolean not null default false,
+    payouts_enabled boolean not null default false,
+    details_submitted boolean not null default false,
+
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+-- ========================================================
+-- 38. ENABLE ROW LEVEL SECURITY ON PHOTOGRAPHER STRIPE ACCOUNT DETAILS TABLE
+-- ========================================================
+
+alter table public.photographer_stripe_accounts
+enable row level security;
+
+-- ========================================================
+-- 39. CREATE POLICY FOR PHOTOGRAPHERS TO VIEW THEIR OWN STRIPE ACCOUNT DETAILS
+-- ========================================================
+
+create policy "Photographers can view their own Stripe account"
+on public.photographer_stripe_accounts
+for select
+to authenticated
+using (
+    photographer_id = (
+        select private.current_photographer_id()
+    )
+);
+
+
+-- ========================================================
+-- 40. ALTER PAYMENTS TABLE TO STORE STRIPE PAYMENT DETAILS
+-- ========================================================
+
+alter table public.payments
+add column stripe_account_id varchar(255),
+add column stripe_checkout_session_id varchar(255),
+add column stripe_payment_intent_id varchar(255),
+add column stripe_charge_id varchar(255);
+
+-- ========================================================
+-- 41. ADD UNIQUE CONSTRAINT TO STRIPE CHECKOUT SESSION ID
+-- ========================================================
+
+alter table public.payments
+add constraint payments_checkout_session_unique
+unique (stripe_checkout_session_id);
+
+
+
+-- ========================================================
+-- 42. DROP POLICY FOR PUBLIC SERVICES
+-- ========================================================
+
+drop policy if exists "Active services are publicly visible"
+on public.services;
+
+-- ========================================================
+-- 43. CREATE POLICY FOR PUBLIC SERVICES   
+-- ========================================================
+
+create policy "Public can view active published services"
+on public.services
+for select
+to anon
+using (
+    is_active = true
+    and exists (
+        select 1
+        from public.photographer_profiles p
+        where p.photographer_id = services.photographer_id
+          and p.published = true
+    )
+);
+
+-- ========================================================
+-- 44. CREATE POLICY FOR CLIENTS TO VIEW THEIR PHOTOGRAPHER SERVICES
+-- ========================================================
+
+create policy "Clients can view their photographers services"
+on public.services
+for select
+to authenticated
+using (
+    photographer_id = (
+        select c.photographer_id
+        from public.clients c
+        where c.client_id = (
+            select private.current_client_id()
+        )
+        limit 1
+    )
+);
+
+-- ========================================================
+-- 45. REVOKE PUBLIC PRIVILEGES ON SERVICES TABLE
+-- ========================================================
+
+revoke all privileges
+on table public.services
+from anon;
+
+grant select
+on table public.services
+to anon;
+
+-- ========================================================
+-- 46. CREATE POLICY FOR PUBLIC SERVICES
+-- ========================================================
+
+create policy "Public can view active published services"
+on public.services
+for select
+to anon
+using (
+    is_active = true
+    and exists (
+        select 1
+        from public.photographer_profiles p
+        where p.photographer_id = services.photographer_id
+          and p.published = true
+    )
+);
+
+-- ========================================================
+-- 47. CREATE POLICY FOR CLIENTS TO VIEW THEIR PHOTOGRAPHER SERVICES
+-- ========================================================
+
+select
+    grantee,
+    privilege_type
+from information_schema.role_table_grants
+where table_schema = 'public'
+  and table_name = 'services'
+order by grantee, privilege_type;
+
+-- ========================================================
+-- 48. REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA PUBLIC FROM ANON
+-- ========================================================
+
+revoke insert, update, delete, truncate, references, trigger
+on all tables in schema public
+from anon;
+
+-- ========================================================
+-- 49. REVOKE TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA PUBLIC FROM AUTHENTICATED
+-- ========================================================
+
+revoke truncate, references, trigger
+on all tables in schema public
+from authenticated;
+
+-- ========================================================
+-- 50. REVOKE SELECT ON TABLES IN SCHEMA PUBLIC FROM ANON
+-- ========================================================
+
+revoke select on table
+    public.availability_exceptions,
+    public.availability_rules,
+    public.bookings,
+    public.calendar_integrations,
+    public.clients,
+    public.conversations,
+    public.galleries,
+    public.media,
+    public.media_favourites,
+    public.messages,
+    public.notifications,
+    public.payments,
+    public.photographer_stripe_accounts,
+    public.profiles,
+    public.website_featured_reviews
+from anon;
+
+-- ========================================================
+-- 51. CREATE POLICY FOR PUBLIC FEATURED REVIEWS
+-- ========================================================
+
+create policy "Published featured reviews are public"
+on public.website_featured_reviews
+for select
+to anon, authenticated
+using (
+    exists (
+        select 1
+        from public.photographer_profiles p
+        join public.reviews r
+          on r.photographer_id = p.photographer_id
+        where p.photographer_id = website_featured_reviews.photographer_id
+          and r.review_id = website_featured_reviews.review_id
+          and r.photographer_id = website_featured_reviews.photographer_id
+          and p.published = true
+          and r.status = 'approved'::review_status
+    )
+);
+
+-- ========================================================
+-- 52. GRANT SELECT ON FEATURED REVIEWS TABLE TO ANON
+-- ========================================================
+
+grant select
+on table public.website_featured_reviews
+to anon;
+
+-- ========================================================
+-- 53. DROP POLICY FOR PUBLIC REVIEWS
+-- ========================================================
+
+drop policy if exists "Approved reviews are public"
+on public.reviews;
+
+-- ========================================================
+-- 54. CREATE POLICY FOR PUBLIC REVIEWS
+-- ========================================================
+
+create policy "Approved reviews of published photographers are public"
+on public.reviews
+for select
+to anon, authenticated
+using (
+    status = 'approved'::review_status
+    and exists (
+        select 1
+        from public.photographer_profiles p
+        where p.photographer_id = reviews.photographer_id
+          and p.published = true
+    )
+);
+
+
+-- ========================================================
+-- 55. REVOKE ALL DEFAULT PRIVILEGES ON NEW FUTURE TABLES IN SCHEMA PUBLIC FROM ANON, AUTHENTICATED, AND SERVICE_ROLE
+-- ========================================================
+
+alter default privileges
+for role postgres
+in schema public
+revoke all privileges on tables from anon;
+
+alter default privileges
+for role postgres
+in schema public
+revoke all privileges on tables from authenticated;
+
+alter default privileges
+for role postgres
+in schema public
+revoke all privileges on tables from service_role;
+
+---------------------------------------------------------
+-- 56. REPLACE FUNCTION TO GET PUBLIC REVIEWS FOR A PHOTOGRAPHER - NOW CHECKS THAT THE PHOTOGRAPHER PROFILE IS APPROVED AND PUBLISHED
+---------------------------------------------------------
+
+create or replace function public.get_public_reviews(
+    p_photographer_id uuid
+)
+returns table(
+    review_id uuid,
+    photographer_id uuid,
+    rating smallint,
+    comment text,
+    created_at timestamptz,
+    display_name text
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+
+    select
+        r.review_id,
+        r.photographer_id,
+        r.rating,
+        r.comment,
+        r.created_at,
+
+        case
+            when nullif(trim(p.first_name), '') is null
+                then 'Photography Client'
+
+            when nullif(trim(p.last_name), '') is null
+                then trim(p.first_name)
+
+            else
+                trim(p.first_name)
+                || ' '
+                || upper(left(trim(p.last_name), 1))
+                || '.'
+        end as display_name
+
+    from public.reviews r
+
+    join public.clients c
+        on c.client_id = r.client_id
+
+    join public.profiles p
+        on p.user_id = c.user_id
+
+    where r.photographer_id = p_photographer_id
+      and r.status = 'approved'::public.review_status
+
+      and exists (
+          select 1
+          from public.photographer_profiles pp
+          where pp.photographer_id = r.photographer_id
+            and pp.published = true
+      )
+
+    order by r.created_at desc;
+
+$function$;
+
+
+-- =========================================================
+-- 57. REPLACE FUNCTION TO GET FEATURED REVIEWS FOR A PHOTOGRAPHER - NOW CHECKS THAT THE PHOTOGRAPHER PROFILE IS APPROVED AND PUBLISHED
+-- =========================================================
+
+create or replace function public.get_featured_reviews(
+    p_photographer_id uuid
+)
+returns table(
+    review_id uuid,
+    photographer_id uuid,
+    rating smallint,
+    comment text,
+    created_at timestamptz,
+    display_name text,
+    display_order smallint
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+
+    select
+        r.review_id,
+        r.photographer_id,
+        r.rating,
+        r.comment,
+        r.created_at,
+
+        case
+            when nullif(trim(p.first_name), '') is null
+                then 'Photography Client'
+
+            when nullif(trim(p.last_name), '') is null
+                then trim(p.first_name)
+
+            else
+                trim(p.first_name)
+                || ' '
+                || upper(left(trim(p.last_name), 1))
+                || '.'
+        end as display_name,
+
+        f.display_order
+
+    from public.website_featured_reviews f
+
+    join public.reviews r
+        on r.review_id = f.review_id
+       and r.photographer_id = f.photographer_id
+
+    join public.clients c
+        on c.client_id = r.client_id
+
+    join public.profiles p
+        on p.user_id = c.user_id
+
+    where f.photographer_id = p_photographer_id
+      and r.status = 'approved'::public.review_status
+
+      and exists (
+          select 1
+          from public.photographer_profiles pp
+          where pp.photographer_id = f.photographer_id
+            and pp.published = true
+      )
+
+    order by f.display_order asc
+    limit 3;
+
+$function$;
+
+
+
+-- =========================================================
+-- 58. REVOKE PUBLIC EXECUTE ON FUNCTIONS public.get_public_reviews AND public.get_featured_reviews
+-- =========================================================
+
+revoke execute
+on function public.get_public_reviews(uuid)
+from public;
+
+revoke execute
+on function public.get_featured_reviews(uuid)
+from public;
+
+grant execute
+on function public.get_public_reviews(uuid)
+to anon, authenticated;
+
+grant execute
+on function public.get_featured_reviews(uuid)
+to anon, authenticated;
+
+
+-- =========================================================
+-- 59. REVOKE DEFAULT PRIVILEGES ON FUNCTIONS IN SCHEMA PUBLIC FROM PUBLIC
+-- =========================================================
+
+alter default privileges
+for role postgres
+in schema public
+revoke execute on functions from public;
+
+alter default privileges
+for role postgres
+in schema public
+revoke execute on functions from anon;
+
+alter default privileges
+for role postgres
+in schema public
+revoke execute on functions from authenticated;
+
+alter default privileges
+for role postgres
+in schema public
+revoke execute on functions from service_role;
+
+-- =========================================================
+-- 60. REVOKE INSERT, UPDATE, DELETE ON TABLE public.photographer_stripe
+-- =========================================================
+
+revoke insert, update, delete
+on table public.photographer_stripe_accounts
+from authenticated;
+
+-- ========================================================
+-- 61. CREATE POLICY FOR PHOTOGRAPHERS TO VIEW THEIR OWN STRIPE ACCOUNT DETAILS
+-- ========================================================
+
+create policy "Photographers can view own Stripe account"
+on public.photographer_stripe_accounts
+for select
+to authenticated
+using (
+    photographer_id = (
+        select private.current_photographer_id()
+    )
+);

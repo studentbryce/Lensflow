@@ -1468,3 +1468,35 @@
   }
 
 }
+
+/* ============================================================
+   STRIPE INTEGRATION ACTIONS
+   ============================================================ */
+
+.settings-integration-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  margin: 20px 24px 24px;
+  padding-top: 20px;
+
+  border-top: 1px solid var(--color-border-light);
+}
+
+.settings-integration-card > .settings-status {
+  margin-right: 24px;
+  margin-left: 24px;
+}
+
+@media (max-width: 650px) {
+  .settings-integration-actions {
+    flex-direction: column;
+    justify-content: stretch;
+  }
+
+  .settings-integration-actions .settings-primary-button,
+  .settings-integration-actions .settings-secondary-button {
+    width: 100%;
+  }
+}

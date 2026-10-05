@@ -19,7 +19,10 @@ import {
   BiUser,
 } from "react-icons/bi";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
@@ -73,6 +76,7 @@ const SETTINGS_SECTIONS = [
 
 export default function Settings() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const {
     signOut,
@@ -84,7 +88,17 @@ export default function Settings() {
      ========================================================= */
 
   const [activeSection, setActiveSection] =
-    useState("account");
+    useState(() => {
+      const requestedSection =
+        searchParams.get("tab");
+
+      return SETTINGS_SECTIONS.some(
+        (section) =>
+          section.id === requestedSection
+      )
+        ? requestedSection
+        : "account";
+    });
 
   const [loading, setLoading] =
     useState(true);
@@ -184,6 +198,29 @@ export default function Settings() {
     useState("");
 
   const [paymentError, setPaymentError] =
+    useState("");
+
+
+  /* =========================================================
+     Stripe Connect state
+     ========================================================= */
+
+  const [stripeAccount, setStripeAccount] =
+    useState(null);
+
+  const [connectingStripe, setConnectingStripe] =
+    useState(false);
+
+  const [startingStripeOnboarding, setStartingStripeOnboarding] =
+    useState(false);
+
+  const [syncingStripeStatus, setSyncingStripeStatus] =
+    useState(false);
+
+  const [stripeMessage, setStripeMessage] =
+    useState("");
+
+  const [stripeError, setStripeError] =
     useState("");
 
 
@@ -427,6 +464,36 @@ export default function Settings() {
 
 
       /* -----------------------------------------------------
+         Stripe Connect account
+         ----------------------------------------------------- */
+
+      const {
+        data: stripeAccountData,
+        error: stripeAccountError,
+      } = await supabase
+        .from("photographer_stripe_accounts")
+        .select(`
+          stripe_account_id,
+          charges_enabled,
+          payouts_enabled,
+          details_submitted
+        `)
+        .eq(
+          "photographer_id",
+          photographerData.photographer_id
+        )
+        .maybeSingle();
+
+      if (stripeAccountError) {
+        throw stripeAccountError;
+      }
+
+      setStripeAccount(
+        stripeAccountData || null
+      );
+
+
+      /* -----------------------------------------------------
          Calendar integration
          ----------------------------------------------------- */
 
@@ -483,6 +550,68 @@ export default function Settings() {
   useEffect(() => {
     loadSettings();
   }, []);
+
+
+  /* =========================================================
+     Settings URL / Stripe return handling
+     ========================================================= */
+
+  useEffect(() => {
+    // Wait until the normal Settings data has loaded before
+    // performing a Stripe return sync. This prevents the initial
+    // database read from overwriting freshly synchronised status.
+    if (loading) {
+      return;
+    }
+
+    const requestedSection =
+      searchParams.get("tab");
+
+    const isValidSection =
+      SETTINGS_SECTIONS.some(
+        (section) =>
+          section.id === requestedSection
+      );
+
+    if (isValidSection) {
+      setActiveSection(requestedSection);
+    }
+
+    const stripeReturn =
+      searchParams.get("stripe");
+
+    if (stripeReturn === "return") {
+      setActiveSection("payments");
+      setStripeError("");
+      setStripeMessage(
+        "You have returned from Stripe successfully. Checking your Stripe account status..."
+      );
+
+      // Synchronise the authoritative account state from Stripe.
+      handleSyncStripeStatus({
+        returningFromStripe: true,
+      });
+
+      // Remove one-time return parameters so refreshing the
+      // Settings page does not repeat the return action.
+      navigate(
+        "/photographer/settings",
+        { replace: true }
+      );
+
+    } else if (stripeReturn === "refresh") {
+      setActiveSection("payments");
+      setStripeMessage("");
+      setStripeError(
+        "Your Stripe setup link expired or could not be reused. Select Continue Stripe Setup to create a new secure onboarding link."
+      );
+
+      navigate(
+        "/photographer/settings",
+        { replace: true }
+      );
+    }
+  }, [loading, navigate, searchParams]);
 
 
   /* =========================================================
@@ -1099,6 +1228,264 @@ export default function Settings() {
 
     } finally {
       setSavingPayments(false);
+    }
+  }
+
+
+  /* =========================================================
+     Stripe Connect handlers
+     ========================================================= */
+
+  async function handleConnectStripe() {
+    try {
+      setConnectingStripe(true);
+      setStripeMessage("");
+      setStripeError("");
+
+      const {
+        data,
+        error,
+      } = await supabase.functions.invoke(
+        "create-stripe-account",
+        {
+          method: "POST",
+        }
+      );
+
+      if (error) {
+        let message =
+          error.message ||
+          "Unable to connect Stripe.";
+
+        try {
+          if (error.context) {
+            const errorBody =
+              await error.context.json();
+
+            message =
+              errorBody?.stripe_error ||
+              errorBody?.error ||
+              message;
+          }
+        } catch {
+          // Keep the original Supabase function error message.
+        }
+
+        throw new Error(message);
+      }
+
+      if (!data?.stripe_account_id) {
+        throw new Error(
+          "Stripe did not return a connected account ID."
+        );
+      }
+
+      setStripeAccount({
+        stripe_account_id:
+          data.stripe_account_id,
+        charges_enabled:
+          Boolean(data.charges_enabled),
+        payouts_enabled:
+          Boolean(data.payouts_enabled),
+        details_submitted:
+          Boolean(data.details_submitted),
+      });
+
+      setStripeMessage(
+        data.already_exists
+          ? "Your existing Stripe account was found successfully."
+          : "Your Stripe connected account was created successfully."
+      );
+
+    } catch (error) {
+      console.error(
+        "Unable to create Stripe connected account:",
+        error
+      );
+
+      setStripeError(
+        error.message ||
+        "Your Stripe account could not be created."
+      );
+
+    } finally {
+      setConnectingStripe(false);
+    }
+  }
+
+
+  async function handleSyncStripeStatus({
+    returningFromStripe = false,
+  } = {}) {
+    try {
+      setSyncingStripeStatus(true);
+      setStripeError("");
+
+      if (!returningFromStripe) {
+        setStripeMessage(
+          "Checking your Stripe account status..."
+        );
+      }
+
+      const {
+        data,
+        error,
+      } = await supabase.functions.invoke(
+        "sync-stripe-account-status",
+        {
+          method: "POST",
+        }
+      );
+
+      if (error) {
+        let message =
+          error.message ||
+          "Unable to synchronise Stripe account status.";
+
+        try {
+          if (error.context) {
+            const errorBody =
+              await error.context.json();
+
+            message =
+              errorBody?.stripe_error ||
+              errorBody?.error ||
+              message;
+          }
+        } catch {
+          // Keep the original Supabase function error message.
+        }
+
+        throw new Error(message);
+      }
+
+      if (
+        typeof data?.charges_enabled !== "boolean" ||
+        typeof data?.payouts_enabled !== "boolean" ||
+        typeof data?.details_submitted !== "boolean"
+      ) {
+        throw new Error(
+          "Stripe returned an unexpected account status."
+        );
+      }
+
+      setStripeAccount((currentAccount) => ({
+        ...currentAccount,
+        stripe_account_id:
+          data.stripe_account_id ||
+          currentAccount?.stripe_account_id ||
+          "",
+        charges_enabled:
+          data.charges_enabled,
+        payouts_enabled:
+          data.payouts_enabled,
+        details_submitted:
+          data.details_submitted,
+      }));
+
+      if (
+        data.charges_enabled &&
+        data.payouts_enabled &&
+        data.details_submitted
+      ) {
+        setStripeMessage(
+          "Stripe status updated successfully. Card payments and payouts are enabled."
+        );
+      } else if (data.details_submitted) {
+        setStripeMessage(
+          "Stripe details have been submitted. Stripe is still reviewing or activating one or more payment features."
+        );
+      } else {
+        setStripeMessage(
+          "Stripe status updated. Additional onboarding information is still required."
+        );
+      }
+
+    } catch (error) {
+      console.error(
+        "Unable to synchronise Stripe account status:",
+        error
+      );
+
+      setStripeMessage("");
+      setStripeError(
+        error.message ||
+        "Your Stripe account status could not be synchronised."
+      );
+
+    } finally {
+      setSyncingStripeStatus(false);
+    }
+  }
+
+
+  async function handleStartStripeOnboarding() {
+    if (!stripeAccount?.stripe_account_id) {
+      setStripeError(
+        "Create your Stripe connected account before starting onboarding."
+      );
+      return;
+    }
+
+    try {
+      setStartingStripeOnboarding(true);
+      setStripeMessage("");
+      setStripeError("");
+
+      const {
+        data,
+        error,
+      } = await supabase.functions.invoke(
+        "create-stripe-onboarding-link",
+        {
+          method: "POST",
+        }
+      );
+
+      if (error) {
+        let message =
+          error.message ||
+          "Unable to start Stripe onboarding.";
+
+        try {
+          if (error.context) {
+            const errorBody =
+              await error.context.json();
+
+            message =
+              errorBody?.stripe_error ||
+              errorBody?.error ||
+              message;
+          }
+        } catch {
+          // Keep the original Supabase function error message.
+        }
+
+        throw new Error(message);
+      }
+
+      if (!data?.url) {
+        throw new Error(
+          "Stripe did not return an onboarding URL."
+        );
+      }
+
+      // Stripe Account Links are temporary and single-use.
+      // Redirect immediately rather than storing the URL.
+      window.location.assign(data.url);
+
+    } catch (error) {
+      console.error(
+        "Unable to start Stripe onboarding:",
+        error
+      );
+
+      setStripeError(
+        error.message ||
+        "Stripe onboarding could not be started."
+      );
+
+      setStartingStripeOnboarding(false);
     }
   }
 
@@ -2012,22 +2399,130 @@ export default function Settings() {
               </h3>
             </div>
 
-            <span className="settings-status-pill">
-              Not connected
+            <span
+              className={`settings-status-pill ${
+                stripeAccount?.stripe_account_id
+                  ? "settings-status-pill--active"
+                  : ""
+              }`}
+            >
+              {stripeAccount?.stripe_account_id
+                ? "Account created"
+                : "Not connected"}
             </span>
           </div>
 
 
           <p className="settings-integration-description">
-            Stripe integration will allow clients to
-            securely pay invoices and booking payments
-            online through LensFlow.
+            Connect Stripe so clients can securely pay
+            LensFlow invoices online. Stripe securely
+            collects the business, identity and payout
+            details required to activate payments.
           </p>
 
 
-          <div className="settings-coming-soon">
-            Stripe integration is planned for a future
-            LensFlow release.
+          {stripeAccount?.stripe_account_id ? (
+            <div className="settings-detail-list">
+              <div className="settings-detail-row">
+                <span>
+                  Stripe account
+                </span>
+
+                <strong>
+                  {stripeAccount.stripe_account_id}
+                </strong>
+              </div>
+
+              <div className="settings-detail-row">
+                <span>
+                  Card payments
+                </span>
+
+                <strong>
+                  {stripeAccount.charges_enabled
+                    ? "Enabled"
+                    : "Not enabled"}
+                </strong>
+              </div>
+
+              <div className="settings-detail-row">
+                <span>
+                  Payouts
+                </span>
+
+                <strong>
+                  {stripeAccount.payouts_enabled
+                    ? "Enabled"
+                    : "Not enabled"}
+                </strong>
+              </div>
+
+              <div className="settings-detail-row">
+                <span>
+                  Stripe details
+                </span>
+
+                <strong>
+                  {stripeAccount.details_submitted
+                    ? "Submitted"
+                    : "Onboarding required"}
+                </strong>
+              </div>
+            </div>
+          ) : null}
+
+
+          {renderStatusMessage(
+            stripeMessage,
+            stripeError
+          )}
+
+
+          <div className="settings-integration-actions">
+            {stripeAccount?.stripe_account_id ? (
+              <button
+                type="button"
+                className="settings-secondary-button"
+                onClick={() =>
+                  handleSyncStripeStatus()
+                }
+                disabled={
+                  syncingStripeStatus ||
+                  startingStripeOnboarding
+                }
+              >
+                <BiRefresh aria-hidden="true" />
+
+                {syncingStripeStatus
+                  ? "Checking..."
+                  : "Refresh Stripe Status"}
+              </button>
+            ) : null}
+
+            <button
+              type="button"
+              className="settings-primary-button"
+              onClick={
+                stripeAccount?.stripe_account_id
+                  ? handleStartStripeOnboarding
+                  : handleConnectStripe
+              }
+              disabled={
+                connectingStripe ||
+                startingStripeOnboarding ||
+                syncingStripeStatus
+              }
+            >
+              <BiCreditCard aria-hidden="true" />
+
+              {connectingStripe
+                ? "Connecting..."
+                : startingStripeOnboarding
+                  ? "Opening Stripe..."
+                  : stripeAccount?.stripe_account_id
+                    ? "Continue Stripe Setup"
+                    : "Connect Stripe"}
+            </button>
           </div>
         </div>
       </>
