@@ -1179,3 +1179,45 @@
     width: 100%;
   }
 }
+
+
+/* =========================================================
+   STRIPE RETURN MESSAGES
+========================================================= */
+
+.client-invoice-payment-notice {
+  margin-bottom: 18px;
+  padding: 15px 18px;
+  border: 1px solid;
+  border-radius: 9px;
+  text-align: left;
+}
+
+.client-invoice-payment-notice strong {
+  display: block;
+  margin-bottom: 4px;
+  font: 700 .9rem "Open Sans", sans-serif;
+}
+
+.client-invoice-payment-notice p {
+  margin: 0;
+  font: .82rem/1.55 "Open Sans", sans-serif;
+}
+
+.client-invoice-payment-notice--success {
+  border-color: #86c89a;
+  background: #f0faf3;
+  color: #245c34;
+}
+
+.client-invoice-payment-notice--pending {
+  border-color: #d9c27a;
+  background: #fffaf0;
+  color: #6b571b;
+}
+
+.client-invoice-payment-notice--cancelled {
+  border-color: #c9ced6;
+  background: #f7f8fa;
+  color: #444b55;
+}

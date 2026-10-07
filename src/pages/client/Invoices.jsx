@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+    useNavigate,
+    useParams,
+    useSearchParams,
+} from "react-router-dom";
 import {
     BiReceipt as Receipt,
     BiSearch as Search,
@@ -138,7 +142,15 @@ function InvoiceCard({ invoice, onView }) {
 export default function Invoices() {
     const navigate = useNavigate();
     const { invoice_id } = useParams();
+    const [searchParams, setSearchParams] =
+        useSearchParams();
     const { user } = useAuth();
+
+    const [paymentReturn] = useState(() =>
+        searchParams.get("payment")
+    );
+    const [paymentConfirmAttempts, setPaymentConfirmAttempts] =
+        useState(0);
 
     const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -159,6 +171,22 @@ export default function Invoices() {
         useState(false);
     const [paymentError, setPaymentError] =
         useState("");
+
+    useEffect(() => {
+        if (!paymentReturn) return;
+
+        const cleanedParams = new URLSearchParams(
+            searchParams
+        );
+        cleanedParams.delete("payment");
+        cleanedParams.delete("session_id");
+
+        setSearchParams(cleanedParams, {
+            replace: true,
+        });
+        // Capture the Stripe return state once, then clean the URL.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         let active = true;
@@ -315,6 +343,43 @@ export default function Invoices() {
             today
         ),
     }));
+
+
+    const returnedInvoice = invoice_id
+        ? records.find(
+              (invoice) =>
+                  invoice.invoice_id === invoice_id
+          )
+        : null;
+
+    useEffect(() => {
+        if (
+            paymentReturn !== "success" ||
+            !invoice_id ||
+            loading ||
+            error ||
+            returnedInvoice?.status === "paid" ||
+            paymentConfirmAttempts >= 5
+        ) {
+            return undefined;
+        }
+
+        const timer = window.setTimeout(() => {
+            setPaymentConfirmAttempts(
+                (attempts) => attempts + 1
+            );
+            setRetry((value) => value + 1);
+        }, 1500);
+
+        return () => window.clearTimeout(timer);
+    }, [
+        paymentReturn,
+        invoice_id,
+        loading,
+        error,
+        returnedInvoice?.status,
+        paymentConfirmAttempts,
+    ]);
 
     const visible = records.filter(
         (invoice) =>
@@ -505,9 +570,10 @@ export default function Invoices() {
                                     : "Download PDF"}
                             </button>
 
-                            {["sent", "overdue"].includes(
-                                selectedInvoice.displayStatus
-                            ) && (
+                            {paymentReturn !== "success" &&
+                                ["sent", "overdue"].includes(
+                                    selectedInvoice.displayStatus
+                                ) && (
                                 <button
                                     type="button"
                                     className="client-invoice-pay-button"
@@ -529,6 +595,67 @@ export default function Invoices() {
                         </div>
                     )}
                 </div>
+
+                {paymentReturn === "success" &&
+                    selectedInvoice &&
+                    selectedInvoice.status === "paid" && (
+                        <div
+                            className="client-invoice-payment-notice client-invoice-payment-notice--success"
+                            role="status"
+                        >
+                            <div>
+                                <strong>
+                                    Payment successful
+                                </strong>
+                                <p>
+                                    Your payment of{" "}
+                                    {formatInvoiceCurrency(
+                                        selectedInvoice.total_amount
+                                    )}{" "}
+                                    has been received. This
+                                    invoice is now paid.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                {paymentReturn === "success" &&
+                    selectedInvoice &&
+                    selectedInvoice.status !== "paid" && (
+                        <div
+                            className="client-invoice-payment-notice client-invoice-payment-notice--pending"
+                            role="status"
+                        >
+                            <div>
+                                <strong>
+                                    Confirming your payment
+                                </strong>
+                                <p>
+                                    {paymentConfirmAttempts < 5
+                                        ? "Stripe has returned you to LensFlow. We are waiting for secure payment confirmation. This page will update automatically."
+                                        : "Payment confirmation is taking longer than expected. Please refresh this invoice shortly. Do not submit another payment while confirmation is pending."}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                {paymentReturn === "cancelled" && (
+                    <div
+                        className="client-invoice-payment-notice client-invoice-payment-notice--cancelled"
+                        role="status"
+                    >
+                        <div>
+                            <strong>
+                                Payment cancelled
+                            </strong>
+                            <p>
+                                No payment was made. You can
+                                return to Stripe whenever you're
+                                ready.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {pdfError && (
                     <div
