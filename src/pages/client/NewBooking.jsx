@@ -741,28 +741,10 @@ export default function NewBooking() {
             }
           ),
 
-        supabase
-          .from(
-            "bookings"
-          )
-          .select(`
-            booking_id,
-            start_time,
-            end_time,
-            status
-          `)
-          .eq(
-            "photographer_id",
-            photographerId
-          )
-          .eq(
-            "booking_date",
-            selectedDate
-          )
-          .in(
-            "status",
-            BLOCKING_BOOKING_STATUSES
-          ),
+        supabase.rpc("get_booking_busy_times", {
+          p_photographer_id: photographerId,
+          p_date: selectedDate,
+        }),
       ]);
 
 
@@ -824,6 +806,11 @@ export default function NewBooking() {
         "Unable to load booking availability:",
         err
       );
+
+      // Fail closed: never show open slots when the busy-time lookup failed.
+      setDayBookings([]);
+      setDayExceptions([{ is_available: false, start_time: null, end_time: null }]);
+      setStart("");
 
 
       setError(
@@ -1453,6 +1440,9 @@ export default function NewBooking() {
       if (
         insertError
       ) {
+        if (insertError.code === "23P01") {
+          throw new Error("That time has just been booked. Please choose another available time.");
+        }
         throw insertError;
       }
 
